@@ -1,14 +1,25 @@
 <template>
-    <div class="tile" :class="tileNumber % 2 == 0 ? 'black-tile' : 'white-tile'">
-        <div v-show="image" class="chess-piece" :style="{ backgroundImage: 'url(' + image + ')' }"></div>
+    <div class="tile" :class="tileNumber % 2 == 0 ? 'black-tile' : 'white-tile'" @mousedown="e => grabPiece(e)">
+        <div v-show="containsPiece" class="chess-piece" :style="{ backgroundImage: 'url(' + pieceImage + ')' }"></div>
     </div>
 </template>
 
 <script setup>
-const { tileNumber, image } = defineProps({
+const { tileNumber, pieceImage } = defineProps({
     tileNumber : Number,
-    image: String
+    pieceImage: String
 });
+const emit = defineEmits(['movePiece']);
+
+const containsPiece = pieceImage !== '';
+
+function grabPiece(e) {
+    if (containsPiece) {
+        const piece = e.target;    
+        emit('movePiece', piece);
+    }
+}
+
 </script>
 
 <style scoped>

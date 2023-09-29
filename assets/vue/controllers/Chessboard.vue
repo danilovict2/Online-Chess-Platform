@@ -1,12 +1,20 @@
 <template>
-    <div id="chessboard">
-        <Tile v-for="tile in board" :key="tile.number" :tile-number="tile.number" :image="tile.pieceImage" />
+    <div id="chessboard" @mousemove="e => movePiece(e)" @mouseup="selectedPiece = null">
+        <Tile 
+            v-for="tile in board" 
+            :key="tile.number" 
+            :tile-number="tile.number" 
+            :piece-image="tile.pieceImage" 
+            @move-piece="piece => selectedPiece = piece" 
+        />
     </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import Tile from '../components/Tile.vue';
 
+const colors = ['b', 'w'];
 const boardDimension = 8;
 /* Starting y positions for black and white pieces respectively */
 const BY = 8;
@@ -14,12 +22,11 @@ const WY = 1;
 
 let board = [];
 let pieces = [];
-const colors = ['b', 'w'];
-
+let selectedPiece = ref(null);
 
 for (const color of colors) {
     const y = (color === 'b') ? BY : WY;
-    
+
     /* PAWNS */
     for (let i = 1; i <= boardDimension; ++i) {
         const pawnY = (color === 'b') ? y - 1 : y + 1;
@@ -53,6 +60,17 @@ for (let j = boardDimension; j >= 1; --j) {
             number: i + j,
             pieceImage: image
         });
+    }
+}
+
+
+function movePiece(e) {
+    if (selectedPiece.value) {
+        const x = e.pageX - 50;
+        const y = e.pageY - 50;
+        selectedPiece.value.style.position = 'absolute';
+        selectedPiece.value.style.left = `${x}px`;
+        selectedPiece.value.style.top = `${y}px`;
     }
 }
 
