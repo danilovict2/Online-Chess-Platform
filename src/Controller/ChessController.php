@@ -11,8 +11,6 @@ class ChessController extends AbstractController
     #[Route('/', name: 'chessboard')]
     public function index(): Response
     {
-        return $this->render('chess/index.html.twig', [
-            'controller_name' => 'ChessController',
-        ]);
+        return $this->render('chess/index.html.twig');
     }
 }
