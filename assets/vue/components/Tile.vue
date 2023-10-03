@@ -15,7 +15,8 @@ const containsPiece = pieceImage !== '';
 
 function grabPiece(e) {
     if (containsPiece) {
-        const piece = e.target;    
+        const piece = e.target; 
+        piece.style.position = 'absolute';   
         emit('movePiece', piece);
     }
 }

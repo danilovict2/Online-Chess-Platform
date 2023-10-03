@@ -1,79 +1,40 @@
 <template>
     <div id="chessboard" @mousemove="e => movePiece(e)" @mouseup="selectedPiece = null">
-        <Tile 
-            v-for="tile in board" 
-            :key="tile.number" 
-            :tile-number="tile.number" 
-            :piece-image="tile.pieceImage" 
-            @move-piece="piece => selectedPiece = piece" 
-        />
+        <Tile v-for="tile in board" :key="tile.number" :tile-number="tile.number" :piece-image="tile.pieceImage"
+            @move-piece="piece => selectedPiece = piece" />
     </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import Tile from '../components/Tile.vue';
+import useBoard from '../composables/board.js';
 
-const colors = ['b', 'w'];
 const boardDimension = 8;
-/* Starting y positions for black and white pieces respectively */
-const BY = 8;
-const WY = 1;
 
 let board = [];
-let pieces = [];
+let pieces = useBoard().pieces;
 let selectedPiece = ref(null);
-
-for (const color of colors) {
-    const y = (color === 'b') ? BY : WY;
-
-    /* PAWNS */
-    for (let i = 1; i <= boardDimension; ++i) {
-        const pawnY = (color === 'b') ? y - 1 : y + 1;
-        pieces.push({ image: `images/pawn_${color}.png`, x: i, y: pawnY });
-    }
-
-    /* ROOKS */
-    pieces.push({ image: `images/rook_${color}.png`, x: 1, y: y });
-    pieces.push({ image: `images/rook_${color}.png`, x: 8, y: y });
-    /* KNIGHTS */
-    pieces.push({ image: `images/knight_${color}.png`, x: 2, y: y });
-    pieces.push({ image: `images/knight_${color}.png`, x: 7, y: y });
-    /* BISHOPS */
-    pieces.push({ image: `images/bishop_${color}.png`, x: 3, y: y });
-    pieces.push({ image: `images/bishop_${color}.png`, x: 6, y: y });
-    /* KING AND QUEEN */
-    pieces.push({ image: `images/king_${color}.png`, x: 4, y: y });
-    pieces.push({ image: `images/queen_${color}.png`, x: 5, y: y });
-}
 
 for (let j = boardDimension; j >= 1; --j) {
     for (let i = 1; i <= boardDimension; ++i) {
-        let image = '';
-        pieces.forEach(piece => {
-            if (piece.x === i && piece.y === j) {
-                image = piece.image;
-            }
-        });
+        const foundPiece = pieces.find(piece => piece.x === i && piece.y === j);
 
         board.push({
             number: i + j,
-            pieceImage: image
+            pieceImage: foundPiece ? foundPiece.image : ''
         });
     }
 }
-
 
 function movePiece(e) {
     if (selectedPiece.value) {
         const x = e.pageX - 50;
         const y = e.pageY - 50;
-        selectedPiece.value.style.position = 'absolute';
         selectedPiece.value.style.left = `${x}px`;
         selectedPiece.value.style.top = `${y}px`;
     }
 }
-
 </script>
 
 <style scoped>
