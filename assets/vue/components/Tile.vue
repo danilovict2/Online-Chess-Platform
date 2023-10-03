@@ -35,7 +35,7 @@ function grabPiece(e) {
     height: 100px;
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 80px;
+    background-size: 100px;
 }
 
 .tile .chess-piece:hover {
