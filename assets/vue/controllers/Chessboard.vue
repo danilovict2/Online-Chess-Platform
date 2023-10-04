@@ -1,5 +1,5 @@
 <template>
-    <div id="chessboard" @mousemove="e => movePiece(e)" @mouseup="e => dropPiece(e)" ref="chessboard">
+    <div id="chessboard" ref="chessboard" @mousemove="e => movePiece(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board" :key="tile" :tile-number="tile.number" :piece-image="tile.pieceImage"
             @move-piece="grapPiece" />
 
@@ -7,17 +7,23 @@
 </template>
 
 <script setup>
-import { ref, watch, reactive } from 'vue';
+import { ref, watch, reactive, onMounted } from 'vue';
 import Tile from '../components/Tile.vue';
 import useBoard from '../composables/board.js';
+import useReferee from '../composables/referee.js';
 
 const boardDimension = 8;
 const chessboard = ref(null);
-const boardHelper = useBoard(chessboard);
 
+let boardHelper = null;
 let board = ref([]);
-let pieces = ref(boardHelper.pieces);
+let pieces = ref(null);
 let selectedPiece = reactive({ piece: null, cell: { x: null, y: null } });
+
+onMounted(() => {
+    boardHelper = useBoard(chessboard);
+    pieces.value = boardHelper.pieces;
+});
 
 watch(pieces, newPieces => {
     board.value = [];
@@ -31,7 +37,7 @@ watch(pieces, newPieces => {
             });
         }
     }
-}, { deep: true, immediate: true });
+}, { deep: true });
 
 function grapPiece(piece, e) {
     selectedPiece.piece = piece;
@@ -49,15 +55,21 @@ function movePiece(e) {
 
 function dropPiece(e) {
     if (selectedPiece.piece) {
-        selectedPiece.piece = null;
         const closestCell = boardHelper.findClosestCell(e.clientX, e.clientY);
         pieces.value = pieces.value.map(piece => {
             if (piece.x === selectedPiece.cell.x && piece.y === selectedPiece.cell.y) {
-                piece.x = closestCell.x;
-                piece.y = closestCell.y;
+                if (useReferee().createRefereeForType(piece.type).isValidMove(selectedPiece.cell, closestCell)) {
+                    piece.x = closestCell.x;
+                    piece.y = closestCell.y;
+                } else {
+                    selectedPiece.piece.style.position = 'relative';
+                    selectedPiece.piece.style.removeProperty('top');
+                    selectedPiece.piece.style.removeProperty('left');
+                }
             }
             return piece;
         });
+        selectedPiece.piece = null;
     }
 }
 </script>
