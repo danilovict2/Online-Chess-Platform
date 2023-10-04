@@ -1,7 +1,7 @@
 <template>
     <div id="chessboard" @mousemove="e => movePiece(e)" @mouseup="e => dropPiece(e)" ref="chessboard">
         <Tile v-for="tile in board" :key="tile" :tile-number="tile.number" :piece-image="tile.pieceImage"
-            @move-piece="piece => selectedPiece = piece" />
+            @move-piece="grapPiece" />
 
     </div>
 </template>
@@ -12,13 +12,12 @@ import Tile from '../components/Tile.vue';
 import useBoard from '../composables/board.js';
 
 const boardDimension = 8;
-const cellDimension = 100;
 const chessboard = ref(null);
+const boardHelper = useBoard(chessboard);
 
 let board = ref([]);
-let pieces = ref(useBoard().pieces);
-let selectedPiece = ref(null);
-let selectedPieceLocation = reactive({ x: null, y: null });
+let pieces = ref(boardHelper.pieces);
+let selectedPiece = reactive({ piece: null, cell: { x: null, y: null } });
 
 watch(pieces, newPieces => {
     board.value = [];
@@ -34,40 +33,31 @@ watch(pieces, newPieces => {
     }
 }, { deep: true, immediate: true });
 
-function movePiece(e) {
-    if (selectedPiece.value) {
-        if (selectedPieceLocation.x === null && selectedPieceLocation.y === null) {
-            // +1 added to start indexing from 1
-            selectedPieceLocation.x = Math.floor((e.clientX - chessboard.value.offsetLeft) / cellDimension) + 1;
-            // -800 inverts y
-            selectedPieceLocation.y = Math.abs(Math.ceil((e.clientY - chessboard.value.offsetTop - 800) / cellDimension)) + 1;
-        }
+function grapPiece(piece, e) {
+    selectedPiece.piece = piece;
+    selectedPiece.cell = boardHelper.findClosestCell(e.clientX, e.clientY);
+}
 
-        const minX = chessboard.value.offsetLeft - 25, minY = chessboard.value.offsetTop - 25;
-        const maxX = chessboard.value.offsetLeft + chessboard.value.clientWidth - 75;
-        const maxY = chessboard.value.offsetTop + chessboard.value.clientHeight - 90;
+function movePiece(e) {
+    if (selectedPiece.piece) {
         const x = e.pageX - 50;
         const y = e.pageY - 50;
-        selectedPiece.value.style.left = `${Math.min(Math.max(x, minX), maxX)}px`;
-        selectedPiece.value.style.top = `${Math.min(Math.max(y, minY), maxY)}px`;
+        selectedPiece.piece.style.left = `${Math.min(Math.max(x, boardHelper.boardLimits.minX), boardHelper.boardLimits.maxX)}px`;
+        selectedPiece.piece.style.top = `${Math.min(Math.max(y, boardHelper.boardLimits.minY), boardHelper.boardLimits.maxY)}px`;
     }
 }
 
 function dropPiece(e) {
-    if (selectedPiece.value) {
-        selectedPiece.value = null;
-        // +1 added to start indexing from 1
-        const x = Math.floor((e.clientX - chessboard.value.offsetLeft) / cellDimension) + 1;
-        // -800 inverts y
-        const y = Math.abs(Math.ceil((e.clientY - chessboard.value.offsetTop - 800) / cellDimension)) + 1;
+    if (selectedPiece.piece) {
+        selectedPiece.piece = null;
+        const closestCell = boardHelper.findClosestCell(e.clientX, e.clientY);
         pieces.value = pieces.value.map(piece => {
-            if (piece.x === selectedPieceLocation.x && piece.y === selectedPieceLocation.y) {
-                piece.x = x;
-                piece.y = y;
+            if (piece.x === selectedPiece.cell.x && piece.y === selectedPiece.cell.y) {
+                piece.x = closestCell.x;
+                piece.y = closestCell.y;
             }
             return piece;
         });
-        selectedPieceLocation = { x: null, y: null };
     }
 }
 </script>

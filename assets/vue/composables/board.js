@@ -1,4 +1,30 @@
-export default function useBoard() {
+export default function useBoard(chessboard) {
+    let pieces = putPiecesOnBoard();
+    let boardLimits = {};
+
+    if (chessboard.value) {
+        boardLimits = {
+            minX: chessboard.value.offsetLeft - 25, 
+            minY: chessboard.value.offsetTop - 25,
+            maxX: chessboard.value.offsetLeft + chessboard.value.clientWidth - 75,
+            maxY: chessboard.value.offsetTop + chessboard.value.clientHeight - 90
+        };
+    }
+
+    function findClosestCell (clientX, clientY) {
+        const cellDimension = 100;
+        // +1 added to start indexing from 1
+        const x = Math.floor((clientX - chessboard.value.offsetLeft) / cellDimension) + 1;
+        // -800 inverts y
+        const y = Math.abs(Math.ceil((clientY - chessboard.value.offsetTop - 800) / cellDimension)) + 1;
+
+        return { x, y };
+    }
+
+    return { pieces, boardLimits, findClosestCell };
+}
+
+function putPiecesOnBoard() {
     const colors = ['b', 'w'];
     const boardDimension = 8;
     const specialPieces = ['rook', 'knight', 'bishop'];
@@ -29,5 +55,5 @@ export default function useBoard() {
         pieces.push({ image: `images/queen_${color}.png`, x: 4, y: y });
     }
 
-    return { pieces };
+    return pieces;
 }

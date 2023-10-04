@@ -17,10 +17,9 @@ function grabPiece(e) {
     if (containsPiece) {
         const piece = e.target; 
         piece.style.position = 'absolute';   
-        emit('movePiece', piece);
+        emit('movePiece', piece, e);
     }
 }
-
 </script>
 
 <style scoped>
