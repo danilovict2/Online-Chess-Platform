@@ -16,7 +16,7 @@ export default class PawnReferee extends Referee {
             }
         }
 
-        // Attacking logica
+        // Attacking logic
         if (toMoveColumn.y - currentColumn.y === direction && this.isOccupied(toMoveColumn) && this.occupiedBy(toMoveColumn).team !== team) {
             if (currentColumn.x - toMoveColumn.x === -1) {
                 return true;
