@@ -5,7 +5,11 @@ export default class Referee {
         throw new Error('isValidMove method should not be called from Referee class!');
     }
 
+    occupiedBy(tile) {
+        return board.pieces.find(piece => piece.x === tile.x && piece.y === tile.y);
+    }
+
     isOccupied(tile) {
-        return Boolean(board.pieces.find(piece => piece.x === tile.x && piece.y === tile.y));
+        return Boolean(this.occupiedBy(tile));
     }
 };

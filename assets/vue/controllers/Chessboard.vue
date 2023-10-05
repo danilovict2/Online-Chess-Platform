@@ -42,19 +42,28 @@ function movePiece(e) {
 function dropPiece(e) {
     if (selectedPiece.piece) {
         const closestCell = boardHelper.findClosestCell(e.clientX, e.clientY);
-        pieces.value = pieces.value.map(piece => {
-            if (piece.x === selectedPiece.cell.x && piece.y === selectedPiece.cell.y) {
-                if (useReferee().createRefereeForType(piece.type).isValidMove(selectedPiece.cell, closestCell, piece.team)) {
+        const currentPiece = pieces.value.find(p => p.x === selectedPiece.cell.x && p.y === selectedPiece.cell.y);
+        const referee = useReferee().createRefereeForType(currentPiece.type);
+
+        if (currentPiece && referee.isValidMove(selectedPiece.cell, closestCell, currentPiece.team)) {
+            pieces.value = pieces.value.reduce((newPieces, piece) => {
+                if (piece.x === closestCell.x && piece.y === closestCell.y) {
+                    return newPieces;
+                }
+
+                if (piece.x === currentPiece.x && piece.y === currentPiece.y) {
                     piece.x = closestCell.x;
                     piece.y = closestCell.y;
-                } else {
-                    selectedPiece.piece.style.position = 'relative';
-                    selectedPiece.piece.style.removeProperty('top');
-                    selectedPiece.piece.style.removeProperty('left');
                 }
-            }
-            return piece;
-        });
+
+                newPieces.push(piece);
+                return newPieces;
+            }, []);
+        } else {
+            selectedPiece.piece.style.position = 'relative';
+            selectedPiece.piece.style.removeProperty('top');
+            selectedPiece.piece.style.removeProperty('left');
+        }
         selectedPiece.piece = null;
     }
 }

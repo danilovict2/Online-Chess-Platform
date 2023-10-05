@@ -4,7 +4,7 @@ export default class PawnReferee extends Referee {
     isValidMove(currentColumn, toMoveColumn, team) {
         const direction = (team === 'w') ? 1 : -1;
         const startingSquare = (team === 'w') ? 2 : 7;
-
+        // Movement Logic
         if (currentColumn.x === toMoveColumn.x && !this.isOccupied(toMoveColumn)) {
             if (toMoveColumn.y - currentColumn.y === direction) {
                 return true;
@@ -12,6 +12,15 @@ export default class PawnReferee extends Referee {
                 currentColumn.y === startingSquare && 
                 !this.isOccupied({ x: toMoveColumn.x, y: currentColumn.y + direction })
             ) {
+                return true;
+            }
+        }
+
+        // Attacking logica
+        if (toMoveColumn.y - currentColumn.y === direction && this.isOccupied(toMoveColumn) && this.occupiedBy(toMoveColumn).team !== team) {
+            if (currentColumn.x - toMoveColumn.x === -1) {
+                return true;
+            } else if(currentColumn.x - toMoveColumn.x === 1) {
                 return true;
             }
         }
