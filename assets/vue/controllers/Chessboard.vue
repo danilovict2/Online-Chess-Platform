@@ -2,7 +2,6 @@
     <div id="chessboard" ref="chessboard" @mousemove="e => movePiece(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :tile-number="tile.number" :piece-image="tile.pieceImage"
             @move-piece="grapPiece" />
-
     </div>
 </template>
 
@@ -45,7 +44,7 @@ function dropPiece(e) {
         const closestCell = boardHelper.findClosestCell(e.clientX, e.clientY);
         pieces.value = pieces.value.map(piece => {
             if (piece.x === selectedPiece.cell.x && piece.y === selectedPiece.cell.y) {
-                if (useReferee().createRefereeForType(piece.type).isValidMove(selectedPiece.cell, closestCell, 'Black')) {
+                if (useReferee().createRefereeForType(piece.type).isValidMove(selectedPiece.cell, closestCell, piece.team)) {
                     piece.x = closestCell.x;
                     piece.y = closestCell.y;
                 } else {
