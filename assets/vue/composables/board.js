@@ -37,7 +37,7 @@ function putPiecesOnBoard() {
         /* PAWNS */
         for (let i = 1; i <= boardDimension; ++i) {
             const pawnY = (color === 'b') ? y - 1 : y + 1;
-            pieces.push({ image: `images/pawn_${color}.png`, x: i, y: pawnY, type: 'Pawn', team: color });
+            pieces.push({ image: `images/pawn_${color}.png`, x: i, y: pawnY, type: 'Pawn', team: color, enPassant: false });
         }
 
         let left = 1, right = 8;

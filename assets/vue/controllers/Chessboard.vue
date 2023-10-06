@@ -45,24 +45,52 @@ function dropPiece(e) {
         const currentPiece = pieces.value.find(p => p.x === selectedPiece.cell.x && p.y === selectedPiece.cell.y);
         const referee = useReferee().createRefereeForType(currentPiece.type);
 
-        if (currentPiece && referee.isValidMove(selectedPiece.cell, closestCell, currentPiece.team)) {
-            pieces.value = pieces.value.reduce((newPieces, piece) => {
-                if (piece.x === closestCell.x && piece.y === closestCell.y) {
+        if (currentPiece) {
+            if (referee.isValidMove(selectedPiece.cell, closestCell, currentPiece.team)) {
+                pieces.value = pieces.value.reduce((newPieces, piece) => {
+                    if (piece.type === 'Pawn') {
+                        piece.enPassant = false;
+                    }
+
+                    if (piece.x === closestCell.x && piece.y === closestCell.y) {
+                        return newPieces;
+                    }
+
+                    if (piece.x === currentPiece.x && piece.y === currentPiece.y) {
+                        if (Math.abs(closestCell.y - currentPiece.y) === 2 && piece.type === 'Pawn') {
+                            piece.enPassant = true;
+                        }
+                        piece.x = closestCell.x;
+                        piece.y = closestCell.y;
+                    }
+
+                    newPieces.push(piece);
                     return newPieces;
-                }
+                }, []);
+            } else if (referee.isEnPassant(selectedPiece.cell, closestCell, currentPiece.team)) {
+                const direction = (currentPiece.team === 'w') ? 1 : -1;
+                pieces.value = pieces.value.reduce((newPieces, piece) => {
+                    if (piece.type === 'Pawn') {
+                        piece.enPassant = false;
+                    }
 
-                if (piece.x === currentPiece.x && piece.y === currentPiece.y) {
-                    piece.x = closestCell.x;
-                    piece.y = closestCell.y;
-                }
+                    if (piece.x === closestCell.x && piece.y === closestCell.y - direction) {
+                        return newPieces;
+                    }
 
-                newPieces.push(piece);
-                return newPieces;
-            }, []);
-        } else {
-            selectedPiece.piece.style.position = 'relative';
-            selectedPiece.piece.style.removeProperty('top');
-            selectedPiece.piece.style.removeProperty('left');
+                    if (piece.x === currentPiece.x && piece.y === currentPiece.y) {
+                        piece.x = closestCell.x;
+                        piece.y = closestCell.y;
+                    }
+
+                    newPieces.push(piece);
+                    return newPieces;
+                }, []);
+            } else {
+                selectedPiece.piece.style.position = 'relative';
+                selectedPiece.piece.style.removeProperty('top');
+                selectedPiece.piece.style.removeProperty('left');
+            }
         }
         selectedPiece.piece = null;
     }
