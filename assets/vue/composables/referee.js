@@ -1,4 +1,5 @@
 import BishopReferee from "./referees/BishopReferee.js";
+import KingReferee from "./referees/KingReferee.js";
 import KnightReferee from "./referees/KnightReferee.js";
 import PawnReferee from "./referees/PawnReferee.js";
 import QueenReferee from "./referees/QueenReferee.js";
@@ -17,6 +18,8 @@ export default function useReferee() {
                 return new RookReferee();
             case 'Queen': 
                 return new QueenReferee();
+            case 'King': 
+                return new KingReferee();
             default:
                 throw new Error('Invalid type');
         }
