@@ -12,4 +12,8 @@ export default class Referee {
     isOccupied(tile) {
         return Boolean(this.occupiedBy(tile));
     }
+
+    isEnPassant() {
+        return false;
+    }
 };
