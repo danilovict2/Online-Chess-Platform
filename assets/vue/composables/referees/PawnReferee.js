@@ -4,14 +4,14 @@ import { board } from "../../stores/board.js";
 export default class PawnReferee extends Referee {
     isValidMove(currentColumn, toMoveColumn, team) {
         const direction = (team === 'w') ? 1 : -1;
-        const startingSquare = (team === 'w') ? 2 : 7;
+        const specialRow = (team === 'w') ? 2 : 7;
 
         // Movement Logic
         if (currentColumn.x === toMoveColumn.x && !this.isOccupied(toMoveColumn)) {
             if (toMoveColumn.y - currentColumn.y === direction) {
                 return true;
             } else if (toMoveColumn.y - currentColumn.y === 2 * direction &&
-                currentColumn.y === startingSquare &&
+                currentColumn.y === specialRow &&
                 !this.isOccupied({ x: toMoveColumn.x, y: currentColumn.y + direction })
             ) {
                 return true;

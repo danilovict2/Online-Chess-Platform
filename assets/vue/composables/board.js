@@ -1,26 +1,30 @@
 export default function useBoard(chessboard) {
-    let pieces = putPiecesOnBoard();
+    let pieces = putPiecesOnTheBoard();
     let boardLimits = {
         minX: chessboard.value.offsetLeft - 25, 
         minY: chessboard.value.offsetTop - 25,
         maxX: chessboard.value.offsetLeft + chessboard.value.clientWidth - 75,
         maxY: chessboard.value.offsetTop + chessboard.value.clientHeight - 90
     };
+    const GRID_COL_SIZE = 100;
 
     function findClosestCell (clientX, clientY) {
-        const cellDimension = 100;
         // +1 added to start indexing from 1
-        const x = Math.floor((clientX - chessboard.value.offsetLeft) / cellDimension) + 1;
+        const x = Math.floor((clientX - chessboard.value.offsetLeft) / GRID_COL_SIZE) + 1;
         // -800 inverts y
-        const y = Math.abs(Math.ceil((clientY - chessboard.value.offsetTop - 800) / cellDimension)) + 1;
+        const y = Math.abs(Math.ceil((clientY - chessboard.value.offsetTop - 800) / GRID_COL_SIZE)) + 1;
 
         return { x, y };
     }
 
-    return { pieces, boardLimits, findClosestCell };
+    function samePosition (p1, p2) {
+        return p1.x === p2.x && p1.y === p2.y;
+    }
+
+    return { pieces, boardLimits, GRID_COL_SIZE, findClosestCell, samePosition };
 }
 
-function putPiecesOnBoard() {
+function putPiecesOnTheBoard() {
     const colors = ['b', 'w'];
     const boardDimension = 8;
     const specialPieces = ['Rook', 'Knight', 'Bishop'];

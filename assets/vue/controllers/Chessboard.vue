@@ -32,8 +32,8 @@ function grapPiece(piece, e) {
 
 function movePiece(e) {
     if (selectedPiece.piece) {
-        const x = e.pageX - 50;
-        const y = e.pageY - 50;
+        const x = e.pageX - boardHelper.GRID_COL_SIZE / 2;
+        const y = e.pageY - boardHelper.GRID_COL_SIZE / 2;
         selectedPiece.piece.style.left = `${Math.min(Math.max(x, boardHelper.boardLimits.minX), boardHelper.boardLimits.maxX)}px`;
         selectedPiece.piece.style.top = `${Math.min(Math.max(y, boardHelper.boardLimits.minY), boardHelper.boardLimits.maxY)}px`;
     }
@@ -41,56 +41,52 @@ function movePiece(e) {
 
 function dropPiece(e) {
     if (selectedPiece.piece) {
-        const closestCell = boardHelper.findClosestCell(e.clientX, e.clientY);
-        const currentPiece = pieces.value.find(p => p.x === selectedPiece.cell.x && p.y === selectedPiece.cell.y);
+        const toMoveCell = boardHelper.findClosestCell(e.clientX, e.clientY);
+        const currentPiece = pieces.value.find(p => boardHelper.samePosition(p, selectedPiece.cell));
         const referee = useReferee().createRefereeForType(currentPiece.type);
 
-        if (currentPiece) {
-            if (referee.isValidMove(selectedPiece.cell, closestCell, currentPiece.team)) {
-                pieces.value = pieces.value.reduce((newPieces, piece) => {
-                    if (piece.type === 'Pawn') {
-                        piece.enPassant = false;
-                    }
+        if (referee.isValidMove(selectedPiece.cell, toMoveCell, currentPiece.team)) {
+            pieces.value = pieces.value.reduce((newPieces, piece) => {
+                if (piece.type === 'Pawn') {
+                    piece.enPassant = false;
+                }
 
-                    if (piece.x === closestCell.x && piece.y === closestCell.y) {
-                        return newPieces;
-                    }
-
-                    if (piece.x === currentPiece.x && piece.y === currentPiece.y) {
-                        if (Math.abs(closestCell.y - currentPiece.y) === 2 && piece.type === 'Pawn') {
-                            piece.enPassant = true;
-                        }
-                        piece.x = closestCell.x;
-                        piece.y = closestCell.y;
-                    }
-
-                    newPieces.push(piece);
+                if (boardHelper.samePosition(piece, toMoveCell)) {
                     return newPieces;
-                }, []);
-            } else if (referee.isEnPassant(selectedPiece.cell, closestCell, currentPiece.team)) {
-                const direction = (currentPiece.team === 'w') ? 1 : -1;
-                pieces.value = pieces.value.reduce((newPieces, piece) => {
-                    if (piece.type === 'Pawn') {
-                        piece.enPassant = false;
-                    }
+                }
 
-                    if (piece.x === closestCell.x && piece.y === closestCell.y - direction) {
-                        return newPieces;
-                    }
+                if (piece === currentPiece) {
+                    piece.enPassant = Math.abs(toMoveCell.y - currentPiece.y) === 2 && piece.type === 'Pawn';
+                    piece.x = toMoveCell.x;
+                    piece.y = toMoveCell.y;
+                }
 
-                    if (piece.x === currentPiece.x && piece.y === currentPiece.y) {
-                        piece.x = closestCell.x;
-                        piece.y = closestCell.y;
-                    }
+                newPieces.push(piece);
+                return newPieces;
+            }, []);
+        } else if (referee.isEnPassant(selectedPiece.cell, toMoveCell, currentPiece.team)) {
+            const direction = (currentPiece.team === 'w') ? 1 : -1;
+            pieces.value = pieces.value.reduce((newPieces, piece) => {
+                if (piece.type === 'Pawn') {
+                    piece.enPassant = false;
+                }
 
-                    newPieces.push(piece);
+                if (boardHelper.samePosition(piece, { x: toMoveCell.x, y: toMoveCell.y - direction })) {
                     return newPieces;
-                }, []);
-            } else {
-                selectedPiece.piece.style.position = 'relative';
-                selectedPiece.piece.style.removeProperty('top');
-                selectedPiece.piece.style.removeProperty('left');
-            }
+                }
+
+                if (piece === currentPiece) {
+                    piece.x = toMoveCell.x;
+                    piece.y = toMoveCell.y;
+                }
+
+                newPieces.push(piece);
+                return newPieces;
+            }, []);
+        } else {
+            selectedPiece.piece.style.position = 'relative';
+            selectedPiece.piece.style.removeProperty('top');
+            selectedPiece.piece.style.removeProperty('left');
         }
         selectedPiece.piece = null;
     }
