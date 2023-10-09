@@ -1,32 +1,9 @@
-export default function useBoard(chessboard) {
-    let pieces = putPiecesOnTheBoard();
-    let boardLimits = {
-        minX: chessboard.value.offsetLeft - 25, 
-        minY: chessboard.value.offsetTop - 25,
-        maxX: chessboard.value.offsetLeft + chessboard.value.clientWidth - 75,
-        maxY: chessboard.value.offsetTop + chessboard.value.clientHeight - 90
-    };
-    const GRID_COL_SIZE = 100;
-
-    function findClosestCell (clientX, clientY) {
-        // +1 added to start indexing from 1
-        const x = Math.floor((clientX - chessboard.value.offsetLeft) / GRID_COL_SIZE) + 1;
-        // -800 inverts y
-        const y = Math.abs(Math.ceil((clientY - chessboard.value.offsetTop - 800) / GRID_COL_SIZE)) + 1;
-
-        return { x, y };
-    }
-
-    function samePosition (p1, p2) {
-        return p1.x === p2.x && p1.y === p2.y;
-    }
-
-    return { pieces, boardLimits, GRID_COL_SIZE, findClosestCell, samePosition };
-}
+export const GRID_COL_SIZE = 100;
+export const BOARD_DIMENSION = 8;
+export let pieces = putPiecesOnTheBoard();
 
 function putPiecesOnTheBoard() {
     const colors = ['b', 'w'];
-    const boardDimension = 8;
     const specialPieces = ['Rook', 'Knight', 'Bishop'];
     
     /* Starting y positions for black and white pieces respectively */
@@ -39,7 +16,7 @@ function putPiecesOnTheBoard() {
         const y = (color === 'b') ? BY : WY;
 
         /* PAWNS */
-        for (let i = 1; i <= boardDimension; ++i) {
+        for (let i = 1; i <= BOARD_DIMENSION; ++i) {
             const pawnY = (color === 'b') ? y - 1 : y + 1;
             pieces.push({ image: `images/pawn_${color}.png`, x: i, y: pawnY, type: 'Pawn', team: color, enPassant: false });
         }

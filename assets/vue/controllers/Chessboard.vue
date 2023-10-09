@@ -7,77 +7,81 @@
 
 <script setup>
 import { ref, watch, reactive, onMounted } from 'vue';
-import Tile from './../components/Tile.vue';
-import useBoard from './../composables/board.js';
-import useReferee from './../composables/referee.js';
-import { board } from './../stores/board.js';
+import Tile from '../components/Tile.vue';
+import { createRefereeForType } from '../common/helpers.js';
+import { board } from '../stores/board.js';
+import { GRID_COL_SIZE, pieces as piecesOnTheBoard } from '../common/constants.js';
 
 const chessboard = ref(null);
 
-let boardHelper = null;
-let pieces = ref(null);
-let selectedPiece = reactive({ piece: null, cell: { x: null, y: null } });
+let boardLimits = null;
+let pieces = ref(piecesOnTheBoard);
+let selectedPiece = reactive({ piece: null, tile: { x: null, y: null } });
 
 onMounted(() => {
-    boardHelper = useBoard(chessboard);
-    pieces.value = boardHelper.pieces;
+    boardLimits = {
+        minX: chessboard.value.offsetLeft - 25,
+        minY: chessboard.value.offsetTop - 25,
+        maxX: chessboard.value.offsetLeft + chessboard.value.clientWidth - 75,
+        maxY: chessboard.value.offsetTop + chessboard.value.clientHeight - 90
+    };
 });
 
-watch(pieces, newPieces => board.updateState(newPieces), { deep: true });
+watch(pieces, newPieces => board.updateState(newPieces), { deep: true, immediate: true });
 
 function grapPiece(piece, e) {
     selectedPiece.piece = piece;
-    selectedPiece.cell = boardHelper.findClosestCell(e.clientX, e.clientY);
+    selectedPiece.tile = findClosestTile(e.clientX, e.clientY);
 }
 
 function movePiece(e) {
     if (selectedPiece.piece) {
-        const x = e.pageX - boardHelper.GRID_COL_SIZE / 2;
-        const y = e.pageY - boardHelper.GRID_COL_SIZE / 2;
-        selectedPiece.piece.style.left = `${Math.min(Math.max(x, boardHelper.boardLimits.minX), boardHelper.boardLimits.maxX)}px`;
-        selectedPiece.piece.style.top = `${Math.min(Math.max(y, boardHelper.boardLimits.minY), boardHelper.boardLimits.maxY)}px`;
+        const x = e.pageX - GRID_COL_SIZE / 2;
+        const y = e.pageY - GRID_COL_SIZE / 2;
+        selectedPiece.piece.style.left = `${Math.min(Math.max(x, boardLimits.minX), boardLimits.maxX)}px`;
+        selectedPiece.piece.style.top = `${Math.min(Math.max(y, boardLimits.minY), boardLimits.maxY)}px`;
     }
 }
 
 function dropPiece(e) {
     if (selectedPiece.piece) {
-        const toMoveCell = boardHelper.findClosestCell(e.clientX, e.clientY);
-        const currentPiece = pieces.value.find(p => boardHelper.samePosition(p, selectedPiece.cell));
-        const referee = useReferee().createRefereeForType(currentPiece.type);
+        const toMovetile = findClosestTile(e.clientX, e.clientY);
+        const currentPiece = pieces.value.find(p => samePosition(p, selectedPiece.tile));
+        const referee = createRefereeForType(currentPiece.type);
 
-        if (referee.isValidMove(selectedPiece.cell, toMoveCell, currentPiece.team)) {
+        if (referee.isValidMove(selectedPiece.tile, toMovetile, currentPiece.team)) {
             pieces.value = pieces.value.reduce((newPieces, piece) => {
                 if (piece.type === 'Pawn') {
                     piece.enPassant = false;
                 }
 
-                if (boardHelper.samePosition(piece, toMoveCell)) {
+                if (samePosition(piece, toMovetile)) {
                     return newPieces;
                 }
 
                 if (piece === currentPiece) {
-                    piece.enPassant = Math.abs(toMoveCell.y - currentPiece.y) === 2 && piece.type === 'Pawn';
-                    piece.x = toMoveCell.x;
-                    piece.y = toMoveCell.y;
+                    piece.enPassant = Math.abs(toMovetile.y - currentPiece.y) === 2 && piece.type === 'Pawn';
+                    piece.x = toMovetile.x;
+                    piece.y = toMovetile.y;
                 }
 
                 newPieces.push(piece);
                 return newPieces;
             }, []);
-        } else if (referee.isEnPassant(selectedPiece.cell, toMoveCell, currentPiece.team)) {
+        } else if (referee.isEnPassant(selectedPiece.tile, toMovetile, currentPiece.team)) {
             const direction = (currentPiece.team === 'w') ? 1 : -1;
             pieces.value = pieces.value.reduce((newPieces, piece) => {
                 if (piece.type === 'Pawn') {
                     piece.enPassant = false;
                 }
 
-                if (boardHelper.samePosition(piece, { x: toMoveCell.x, y: toMoveCell.y - direction })) {
+                if (samePosition(piece, { x: toMovetile.x, y: toMovetile.y - direction })) {
                     return newPieces;
                 }
 
                 if (piece === currentPiece) {
-                    piece.x = toMoveCell.x;
-                    piece.y = toMoveCell.y;
+                    piece.x = toMovetile.x;
+                    piece.y = toMovetile.y;
                 }
 
                 newPieces.push(piece);
@@ -90,6 +94,19 @@ function dropPiece(e) {
         }
         selectedPiece.piece = null;
     }
+}
+
+function findClosestTile(clientX, clientY) {
+    // +1 added to start indexing from 1
+    const x = Math.floor((clientX - (boardLimits.minX + 25)) / GRID_COL_SIZE) + 1;
+    // -800 inverts y
+    const y = Math.abs(Math.ceil((clientY - boardLimits.minY - 825) / GRID_COL_SIZE)) + 1;
+    
+    return { x, y };
+}
+
+function samePosition(p1, p2) {
+    return p1.x === p2.x && p1.y === p2.y;
 }
 </script>
 

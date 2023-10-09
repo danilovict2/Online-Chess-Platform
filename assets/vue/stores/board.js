@@ -1,6 +1,5 @@
 import { reactive } from "vue";
-
-const boardDimension = 8;
+import { BOARD_DIMENSION } from "../common/constants.js";
 
 export const board = reactive({
     state: [],
@@ -10,8 +9,8 @@ export const board = reactive({
         this.state = [];
         this.pieces = pieces;
         
-        for (let j = boardDimension; j >= 1; --j) {
-            for (let i = 1; i <= boardDimension; ++i) {
+        for (let j = BOARD_DIMENSION; j >= 1; --j) {
+            for (let i = 1; i <= BOARD_DIMENSION; ++i) {
                 const foundPiece = this.pieces.find(piece => piece.x === i && piece.y === j);
 
                 this.state.push({
