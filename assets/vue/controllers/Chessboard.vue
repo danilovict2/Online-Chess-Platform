@@ -3,19 +3,22 @@
         <Tile v-for="tile in board.state" :key="tile" :tile-number="tile.number" :piece-image="tile.pieceImage"
             @move-piece="grapPiece" />
     </div>
+    <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo"/>
 </template>
 
 <script setup>
 import { ref, watch, reactive, onMounted } from 'vue';
 import Tile from '../components/Tile.vue';
+import PromotionModal from '../components/PromotionModal.vue';
 import { createRefereeForType } from '../common/helpers.js';
 import { board } from '../stores/board.js';
-import { GRID_COL_SIZE, pieces as piecesOnTheBoard } from '../common/constants.js';
+import { GRID_COL_SIZE, pieces as piecesOnTheBoard, BLACK_PIECES_START_Y, WHITE_PIECES_START_Y } from '../common/constants.js';
 
 const chessboard = ref(null);
 
 let boardLimits = null;
 let pieces = ref(piecesOnTheBoard);
+let promotionPawn = ref(null);
 let selectedPiece = reactive({ piece: null, tile: { x: null, y: null } });
 
 onMounted(() => {
@@ -67,7 +70,11 @@ function dropPiece(e) {
                     piece.x = toMovetile.x;
                     piece.y = toMovetile.y;
                 }
-
+                
+                const promotionRow = (piece.team === 'w') ? BLACK_PIECES_START_Y : WHITE_PIECES_START_Y;
+                if (piece.type === 'Pawn' && piece.y === promotionRow) {
+                    promotionPawn.value = piece;
+                }
                 newPieces.push(piece);
                 return newPieces;
             }, []);
@@ -78,6 +85,21 @@ function dropPiece(e) {
         }
         selectedPiece.piece = null;
     }
+}
+
+function promoteTo(pieceType) {
+    if (promotionPawn.value) {
+        pieces.value = pieces.value.reduce((newPieces, piece) => {
+            if (piece === promotionPawn.value) {
+                piece.type = pieceType;
+                piece.image = `images/${pieceType.toLowerCase()}_${piece.team}.png`;
+            }
+            newPieces.push(piece);
+            return newPieces;
+        }, []);
+        promotionPawn.value = null;
+    }
+    
 }
 
 function findClosestTile(clientX, clientY) {

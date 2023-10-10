@@ -1,19 +1,16 @@
 export const GRID_COL_SIZE = 100;
 export const BOARD_DIMENSION = 8;
-export let pieces = putPiecesOnTheBoard();
+export const BLACK_PIECES_START_Y = 8;
+export const WHITE_PIECES_START_Y = 1;
+export let pieces = putPiecesOnTheBoard(BLACK_PIECES_START_Y, WHITE_PIECES_START_Y);
 
-function putPiecesOnTheBoard() {
+function putPiecesOnTheBoard(BLACK_PIECES_START_Y, WHITE_PIECES_START_Y) {
     const colors = ['b', 'w'];
     const specialPieces = ['Rook', 'Knight', 'Bishop'];
-    
-    /* Starting y positions for black and white pieces respectively */
-    const BY = 8;
-    const WY = 1;
-
     let pieces = [];
 
     for (const color of colors) {
-        const y = (color === 'b') ? BY : WY;
+        const y = (color === 'b') ? BLACK_PIECES_START_Y : WHITE_PIECES_START_Y;
 
         /* PAWNS */
         for (let i = 1; i <= BOARD_DIMENSION; ++i) {
