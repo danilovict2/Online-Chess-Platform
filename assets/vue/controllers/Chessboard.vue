@@ -50,26 +50,9 @@ function dropPiece(e) {
         const referee = createRefereeForType(currentPiece.type);
 
         if (referee.isValidMove(selectedPiece.tile, toMovetile, currentPiece.team)) {
-            pieces.value = pieces.value.reduce((newPieces, piece) => {
-                if (piece.type === 'Pawn') {
-                    piece.enPassant = false;
-                }
+            const direction = (referee.isEnPassant(selectedPiece.tile, toMovetile, currentPiece.team)) ? 
+                (currentPiece.team === 'w') ? 1 : -1 : 0;
 
-                if (samePosition(piece, toMovetile)) {
-                    return newPieces;
-                }
-
-                if (piece === currentPiece) {
-                    piece.enPassant = Math.abs(toMovetile.y - currentPiece.y) === 2 && piece.type === 'Pawn';
-                    piece.x = toMovetile.x;
-                    piece.y = toMovetile.y;
-                }
-
-                newPieces.push(piece);
-                return newPieces;
-            }, []);
-        } else if (referee.isEnPassant(selectedPiece.tile, toMovetile, currentPiece.team)) {
-            const direction = (currentPiece.team === 'w') ? 1 : -1;
             pieces.value = pieces.value.reduce((newPieces, piece) => {
                 if (piece.type === 'Pawn') {
                     piece.enPassant = false;
@@ -80,6 +63,7 @@ function dropPiece(e) {
                 }
 
                 if (piece === currentPiece) {
+                    piece.enPassant = piece.type === 'Pawn' && Math.abs(currentPiece.y - toMovetile.y) === 2; 
                     piece.x = toMovetile.x;
                     piece.y = toMovetile.y;
                 }
