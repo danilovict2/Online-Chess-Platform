@@ -14,8 +14,9 @@ export const board = reactive({
                 const foundPiece = this.pieces.find(piece => piece.x === i && piece.y === j);
 
                 this.state.push({
-                    number: i + j,
-                    pieceImage: foundPiece ? foundPiece.image : ''
+                    x: i, 
+                    y: j,
+                    pieceImage: foundPiece ? foundPiece.image : '',
                 });
             }
         }

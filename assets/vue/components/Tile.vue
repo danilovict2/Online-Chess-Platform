@@ -1,13 +1,19 @@
 <template>
-    <div class="tile" :class="tileNumber % 2 == 0 ? 'black-tile' : 'white-tile'" @mousedown="e => grabPiece(e)">
+    <div class="tile" :class="{
+        'black-tile' : tileNumber % 2 === 0,
+        'white-tile' : tileNumber % 2 !== 0,
+        'highlight' : isPossibleMove,
+        'chess-piece-tile' : containsPiece
+    }" @mousedown="e => grabPiece(e)">
         <div v-show="containsPiece" class="chess-piece" :style="{ backgroundImage: 'url(' + pieceImage + ')' }"></div>
     </div>
 </template>
 
 <script setup>
-const { tileNumber, pieceImage } = defineProps({
+const { tileNumber, pieceImage, isPossibleMove } = defineProps({
     tileNumber : Number,
-    pieceImage: String
+    pieceImage: String,
+    isPossibleMove: Boolean
 });
 const emit = defineEmits(['movePiece']);
 
@@ -52,5 +58,22 @@ function grabPiece(e) {
 
 .black-tile {
     background-color: #779556;
+}
+
+.highlight:not(.chess-piece-tile)::before {
+    content: " ";
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.highlight.chess-piece-tile::before {
+    position: absolute;
+    content: " ";
+    width: 90px;
+    height: 90px;
+    border: 5px solid rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
 }
 </style>

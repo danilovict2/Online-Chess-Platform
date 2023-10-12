@@ -3,7 +3,7 @@ import Referee from "./Referee.js";
 
 export default class RookReferee extends Referee {
     isValidMove(startTile, toMoveTile, team) {
-        if (startTile.x !== toMoveTile.x && startTile.y !== toMoveTile.y && (!this.isOccupied(toMoveTile) || this.occupiedBy(toMoveTile).team !== team)) {
+        if (startTile.x !== toMoveTile.x && startTile.y !== toMoveTile.y) {
             return false;
         }
 
@@ -29,7 +29,7 @@ export default class RookReferee extends Referee {
             if (!currentTile) {
                 return false;
             }
-            if (currentTile.x === toMoveTile.x && currentTile.y === toMoveTile.y) {
+            if (currentTile.x === toMoveTile.x && currentTile.y === toMoveTile.y && (!this.isOccupied(toMoveTile) || this.occupiedBy(toMoveTile).team !== team)) {
                 return true;
             } else if (this.isOccupied(currentTile)) {
                 return false;
