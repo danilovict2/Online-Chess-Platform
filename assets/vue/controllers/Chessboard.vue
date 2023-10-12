@@ -1,5 +1,5 @@
 <template>
-    <div id="chessboard" ref="chessboard" @mousemove="e => movePiece(e)" @mouseup="e => dropPiece(e)">
+    <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :tile-number="tile.x + tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => move.x === tile.x && move.y === tile.y)"
             @move-piece="grapPiece" />
@@ -22,7 +22,7 @@ let currentPiece = null;
 let possibleMoves = ref([]);
 let pieces = ref(piecesOnTheBoard);
 let promotionPawn = ref(null);
-let selectedPiece = ref(null);
+let currentPieceDOMElement = ref(null);
 
 onMounted(() => {
     boardLimits = {
@@ -36,11 +36,15 @@ onMounted(() => {
 watch(pieces, newPieces => board.updateState(newPieces), { deep: true, immediate: true });
 
 function grapPiece(piece, e) {
-    selectedPiece.value = piece;
+    currentPieceDOMElement.value = piece;
     const currentPieceTile = findClosestTile(e.clientX, e.clientY);
     currentPiece = pieces.value.find(p => samePosition(p, currentPieceTile));
+    calculatePossibleMoves();
+    moveCurrentPieceDOMElement(e);
+}
+
+function calculatePossibleMoves() {
     possibleMoves.value = createRefereeForType(currentPiece.type).getPossibleMoves(currentPiece);
-    movePiece(e);
 }
 
 function findClosestTile(clientX, clientY) {
@@ -56,17 +60,17 @@ function samePosition(p1, p2) {
     return p1.x === p2.x && p1.y === p2.y;
 }
 
-function movePiece(e) {
-    if (selectedPiece.value) {
+function moveCurrentPieceDOMElement(e) {
+    if (currentPieceDOMElement.value) {
         const x = e.pageX - GRID_COL_SIZE / 2;
         const y = e.pageY - GRID_COL_SIZE / 2;
-        selectedPiece.value.style.left = `${Math.min(Math.max(x, boardLimits.minX), boardLimits.maxX)}px`;
-        selectedPiece.value.style.top = `${Math.min(Math.max(y, boardLimits.minY), boardLimits.maxY)}px`;
+        currentPieceDOMElement.value.style.left = `${Math.min(Math.max(x, boardLimits.minX), boardLimits.maxX)}px`;
+        currentPieceDOMElement.value.style.top = `${Math.min(Math.max(y, boardLimits.minY), boardLimits.maxY)}px`;
     }
 }
 
 function dropPiece(e) {
-    if (selectedPiece.value) {
+    if (currentPieceDOMElement.value) {
         const toMovetile = findClosestTile(e.clientX, e.clientY);
         const referee = createRefereeForType(currentPiece.type);
 
@@ -75,11 +79,11 @@ function dropPiece(e) {
                 (currentPiece.team === 'w') ? 1 : -1 : 0;
             playMove(direction, toMovetile);
         } else {
-            selectedPiece.value.style.position = 'relative';
-            selectedPiece.value.style.removeProperty('top');
-            selectedPiece.value.style.removeProperty('left');
+            currentPieceDOMElement.value.style.position = 'relative';
+            currentPieceDOMElement.value.style.removeProperty('top');
+            currentPieceDOMElement.value.style.removeProperty('left');
         }
-        selectedPiece.value = null;
+        currentPieceDOMElement.value = null;
         possibleMoves.value = [];
     }
 }
