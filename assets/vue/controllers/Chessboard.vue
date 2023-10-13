@@ -1,8 +1,7 @@
 <template>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :tile-number="tile.x + tile.y" :piece-image="tile.pieceImage"
-            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))"
-            @move-piece="grapPiece" />
+            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @move-piece="grapPiece" />
     </div>
     <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
 </template>
@@ -37,24 +36,32 @@ watch(pieces, newPieces => board.updateState(newPieces), { deep: true, immediate
 
 function grapPiece(piece, e) {
     currentPieceDOMElement.value = piece;
+    moveCurrentPieceDOMElement(e);
+
     const currentPieceTile = findClosestTile(e.clientX, e.clientY);
     currentPiece = pieces.value.find(p => samePosition(p, currentPieceTile));
-    calculatePossibleMoves();
-    moveCurrentPieceDOMElement(e);
+    if (!((currentPiece.team === 'w' && board.turn % 2 === 0) || (currentPiece.team === 'b' && board.turn % 2 !== 0))) {
+        calculatePossibleMoves();
+    }
+    
 }
 
 function calculatePossibleMoves() {
     possibleMoves.value = createRefereeForType(currentPiece.type).getPossibleMoves(currentPiece);
+    checkKingMoves();
+    checkIfCurrentPieceMovesEndangerKing();
+}
+
+function checkKingMoves() {
     if (currentPiece.type !== 'King') return;
 
     // Prevent king from making move that puts him in danger
-    const enemyTeam = (currentPiece.team === 'w') ? 'b' : 'w';
     let movesToRemove = [];
 
     for (const move of possibleMoves.value) {
         const currentPieceState = board.pieces;
-        board.pieces = createSimulatedBoardForMove(move).pieces;
-        const enemyPieces = board.pieces.filter(p => p.team === enemyTeam);
+        board.pieces = createSimulatedBoardForMove(move, 'King').pieces;
+        const enemyPieces = board.pieces.filter(p => p.team !== currentPiece.team);
 
         if (!isMovePossible(move, enemyPieces)) {
             movesToRemove.push(move);
@@ -65,14 +72,43 @@ function calculatePossibleMoves() {
     possibleMoves.value = possibleMoves.value.filter(move => !movesToRemove.some(m => m === move));
 }
 
-function createSimulatedBoardForMove(move) {
+function checkIfCurrentPieceMovesEndangerKing() {
+    let movesToRemove = [];
+
+    for (const move of possibleMoves.value) {
+        const currentPieceState = board.pieces;
+        board.pieces = createSimulatedBoardForMove(move, currentPiece.type).pieces;
+        const enemyPieces = board.pieces.filter(p => p.team !== currentPiece.team);
+        const king = board.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
+
+        let isSafe = true;
+        for (const p of enemyPieces) {
+            const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
+            if (p.type === 'Pawn' && possibleMoves.some(m => m.x !== p.x && samePosition(m, king))) {
+                isSafe = false;
+                break;
+            } else if (possibleMoves.some(m => samePosition(m, king))) {
+                isSafe = false;
+                break;
+            }
+        }
+        if (!isSafe) {
+            movesToRemove.push(move);
+        }
+
+        board.pieces = currentPieceState;
+    }
+    possibleMoves.value = possibleMoves.value.filter(move => !movesToRemove.some(m => m === move));
+}
+
+function createSimulatedBoardForMove(move, simulatedPieceType) {
     const simulatedBoard = JSON.parse(JSON.stringify(board));
     const pieceAtDestination = simulatedBoard.pieces.find(p => samePosition(p, move));
     if (pieceAtDestination !== undefined) {
         simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !samePosition(p, move));
     }
 
-    const simulatedKing = simulatedBoard.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
+    const simulatedKing = simulatedBoard.pieces.find(p => samePosition(p, currentPiece));
     [simulatedKing.x, simulatedKing.y] = [move.x, move.y];
     return simulatedBoard;
 }
@@ -117,8 +153,9 @@ function dropPiece(e) {
         const referee = createRefereeForType(currentPiece.type);
 
         if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
-            const direction = (referee.isEnPassant({ x: currentPiece.x, y: currentPiece.y }, toMovetile, currentPiece.team)) ?
-                (currentPiece.team === 'w') ? 1 : -1 : 0;
+            const direction =
+                (referee.isEnPassant({ x: currentPiece.x, y: currentPiece.y }, toMovetile, currentPiece.team)) ?
+                    (currentPiece.team === 'w') ? 1 : -1 : 0;
             playMove(direction, toMovetile);
         } else {
             currentPieceDOMElement.value.style.position = 'relative';
@@ -147,6 +184,7 @@ function playMove(direction, toMovetile) {
         newPieces.push(piece);
         return newPieces;
     }, []);
+    board.turn++;
 }
 
 function movePieceWithEnPassantCheck(piece, toMovetile) {

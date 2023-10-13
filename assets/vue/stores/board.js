@@ -4,6 +4,7 @@ import { BOARD_DIMENSION } from "../common/constants.js";
 export const board = reactive({
     state: [],
     pieces: [],
+    turn: 1,
 
     updateState(pieces) {
         this.state = [];
