@@ -11,7 +11,7 @@ export const board = reactive({
         
         for (let j = BOARD_DIMENSION; j >= 1; --j) {
             for (let i = 1; i <= BOARD_DIMENSION; ++i) {
-                const foundPiece = this.pieces.find(piece => piece.x === i && piece.y === j);
+                const foundPiece = pieces.find(piece => piece.x === i && piece.y === j);
 
                 this.state.push({
                     x: i, 

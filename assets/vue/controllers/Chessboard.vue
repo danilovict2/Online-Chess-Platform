@@ -45,6 +45,46 @@ function grapPiece(piece, e) {
 
 function calculatePossibleMoves() {
     possibleMoves.value = createRefereeForType(currentPiece.type).getPossibleMoves(currentPiece);
+    if (currentPiece.type !== 'King') return;
+
+    // Prevent king from making move that puts him in danger
+    const enemyTeam = (currentPiece.team === 'w') ? 'b' : 'w';
+    let movesToRemove = [];
+
+    for (const move of possibleMoves.value) {
+        const currentPieceState = board.pieces;
+
+        const simulatedBoard = JSON.parse(JSON.stringify(board));
+        const pieceAtDestination = simulatedBoard.pieces.find(p => samePosition(p, move));
+        if (pieceAtDestination !== undefined) {
+            simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !samePosition(p, move));
+        }
+
+        const simulatedKing = simulatedBoard.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
+        [simulatedKing.x, simulatedKing.y] = [move.x, move.y];
+        
+        let isSafe = true;
+        const enemyPieces = simulatedBoard.pieces.filter(p => p.team === enemyTeam);
+        board.pieces = simulatedBoard.pieces;
+        for (const p of enemyPieces) {
+            const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
+            if (p.type === 'Pawn') {
+                if (possibleMoves.some(m => m.x !== p.x && samePosition(m, move))) {
+                    isSafe = false;
+                    break;
+                }
+            } else if (possibleMoves.some(m => samePosition(m, move))) {
+                isSafe = false;
+                break;
+            }
+        }
+
+        if (!isSafe) {
+            movesToRemove.push(move);
+        }
+        board.pieces = currentPieceState;
+    }
+    possibleMoves.value = possibleMoves.value.filter(move => !movesToRemove.some(m => m === move));
 }
 
 function findClosestTile(clientX, clientY) {
@@ -96,12 +136,12 @@ function playMove(direction, toMovetile) {
             return newPieces;
         }
         if (piece === currentPiece) {
-            movePieceWithEnPassantCheck(piece, toMovetile);       
+            movePieceWithEnPassantCheck(piece, toMovetile);
         }
         if (canBePromoted(piece)) {
             promotionPawn.value = piece;
         }
-        
+
         newPieces.push(piece);
         return newPieces;
     }, []);
