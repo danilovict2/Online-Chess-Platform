@@ -1,7 +1,7 @@
 <template>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :tile-number="tile.x + tile.y" :piece-image="tile.pieceImage"
-            :is-possible-move="possibleMoves.some(move => move.x === tile.x && move.y === tile.y)"
+            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))"
             @move-piece="grapPiece" />
     </div>
     <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
@@ -13,14 +13,14 @@ import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/PromotionModal.vue';
 import { createRefereeForType } from '../common/helpers.js';
 import { board } from '../stores/board.js';
-import { GRID_COL_SIZE, pieces as piecesOnTheBoard, BLACK_PIECES_START_Y, WHITE_PIECES_START_Y } from '../common/constants.js';
+import { GRID_COL_SIZE, pieces as defaultPieceLayout, BLACK_PIECES_START_Y, WHITE_PIECES_START_Y } from '../common/constants.js';
 
 const chessboard = ref(null);
 
 let boardLimits = null;
 let currentPiece = null;
 let possibleMoves = ref([]);
-let pieces = ref(piecesOnTheBoard);
+let pieces = ref(defaultPieceLayout);
 let promotionPawn = ref(null);
 let currentPieceDOMElement = ref(null);
 
@@ -53,38 +53,40 @@ function calculatePossibleMoves() {
 
     for (const move of possibleMoves.value) {
         const currentPieceState = board.pieces;
+        board.pieces = createSimulatedBoardForMove(move).pieces;
+        const enemyPieces = board.pieces.filter(p => p.team === enemyTeam);
 
-        const simulatedBoard = JSON.parse(JSON.stringify(board));
-        const pieceAtDestination = simulatedBoard.pieces.find(p => samePosition(p, move));
-        if (pieceAtDestination !== undefined) {
-            simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !samePosition(p, move));
-        }
-
-        const simulatedKing = simulatedBoard.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
-        [simulatedKing.x, simulatedKing.y] = [move.x, move.y];
-        
-        let isSafe = true;
-        const enemyPieces = simulatedBoard.pieces.filter(p => p.team === enemyTeam);
-        board.pieces = simulatedBoard.pieces;
-        for (const p of enemyPieces) {
-            const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
-            if (p.type === 'Pawn') {
-                if (possibleMoves.some(m => m.x !== p.x && samePosition(m, move))) {
-                    isSafe = false;
-                    break;
-                }
-            } else if (possibleMoves.some(m => samePosition(m, move))) {
-                isSafe = false;
-                break;
-            }
-        }
-
-        if (!isSafe) {
+        if (!isMovePossible(move, enemyPieces)) {
             movesToRemove.push(move);
         }
+
         board.pieces = currentPieceState;
     }
     possibleMoves.value = possibleMoves.value.filter(move => !movesToRemove.some(m => m === move));
+}
+
+function createSimulatedBoardForMove(move) {
+    const simulatedBoard = JSON.parse(JSON.stringify(board));
+    const pieceAtDestination = simulatedBoard.pieces.find(p => samePosition(p, move));
+    if (pieceAtDestination !== undefined) {
+        simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !samePosition(p, move));
+    }
+
+    const simulatedKing = simulatedBoard.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
+    [simulatedKing.x, simulatedKing.y] = [move.x, move.y];
+    return simulatedBoard;
+}
+
+function isMovePossible(move, enemyPieces) {
+    for (const p of enemyPieces) {
+        const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
+        if (p.type === 'Pawn' && possibleMoves.some(m => m.x !== p.x && samePosition(m, move))) {
+            return false;
+        } else if (possibleMoves.some(m => samePosition(m, move))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function findClosestTile(clientX, clientY) {
@@ -169,7 +171,6 @@ function promoteTo(pieceType) {
         });
         promotionPawn.value = null;
     }
-
 }
 </script>
 
