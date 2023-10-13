@@ -48,81 +48,49 @@ function grapPiece(piece, e) {
 
 function calculatePossibleMoves() {
     possibleMoves.value = createRefereeForType(currentPiece.type).getPossibleMoves(currentPiece);
-    checkKingMoves();
-    checkIfCurrentPieceMovesEndangerKing();
+    let possibleMovesThatEndangerTheKing = getPossibleMovesThatEndangerTheKing();
+    possibleMoves.value = possibleMoves.value.filter(move => !possibleMovesThatEndangerTheKing.some(m => m === move));
 }
 
-function checkKingMoves() {
-    if (currentPiece.type !== 'King') return;
-
-    // Prevent king from making move that puts him in danger
+function getPossibleMovesThatEndangerTheKing() {
     let movesToRemove = [];
-
-    for (const move of possibleMoves.value) {
-        const currentPieceState = board.pieces;
-        board.pieces = createSimulatedBoardForMove(move, 'King').pieces;
-        const enemyPieces = board.pieces.filter(p => p.team !== currentPiece.team);
-
-        if (!isMovePossible(move, enemyPieces)) {
-            movesToRemove.push(move);
-        }
-
-        board.pieces = currentPieceState;
-    }
-    possibleMoves.value = possibleMoves.value.filter(move => !movesToRemove.some(m => m === move));
-}
-
-function checkIfCurrentPieceMovesEndangerKing() {
-    let movesToRemove = [];
-
     for (const move of possibleMoves.value) {
         const currentPieceState = board.pieces;
         board.pieces = createSimulatedBoardForMove(move, currentPiece.type).pieces;
         const enemyPieces = board.pieces.filter(p => p.team !== currentPiece.team);
-        const king = board.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
 
-        let isSafe = true;
-        for (const p of enemyPieces) {
-            const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
-            if (p.type === 'Pawn' && possibleMoves.some(m => m.x !== p.x && samePosition(m, king))) {
-                isSafe = false;
-                break;
-            } else if (possibleMoves.some(m => samePosition(m, king))) {
-                isSafe = false;
-                break;
-            }
-        }
-        if (!isSafe) {
+        if (canEnemyPieceCaptureKing(enemyPieces)) {
             movesToRemove.push(move);
         }
-
         board.pieces = currentPieceState;
     }
-    possibleMoves.value = possibleMoves.value.filter(move => !movesToRemove.some(m => m === move));
+    return movesToRemove;
 }
 
-function createSimulatedBoardForMove(move, simulatedPieceType) {
+function createSimulatedBoardForMove(move) {
     const simulatedBoard = JSON.parse(JSON.stringify(board));
+
     const pieceAtDestination = simulatedBoard.pieces.find(p => samePosition(p, move));
     if (pieceAtDestination !== undefined) {
         simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !samePosition(p, move));
     }
 
-    const simulatedKing = simulatedBoard.pieces.find(p => samePosition(p, currentPiece));
-    [simulatedKing.x, simulatedKing.y] = [move.x, move.y];
+    const simulatedPiece = simulatedBoard.pieces.find(p => samePosition(p, currentPiece));
+    [simulatedPiece.x, simulatedPiece.y] = [move.x, move.y];
     return simulatedBoard;
 }
 
-function isMovePossible(move, enemyPieces) {
+function canEnemyPieceCaptureKing(enemyPieces) {
+    const king = board.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
     for (const p of enemyPieces) {
         const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
-        if (p.type === 'Pawn' && possibleMoves.some(m => m.x !== p.x && samePosition(m, move))) {
-            return false;
-        } else if (possibleMoves.some(m => samePosition(m, move))) {
-            return false;
+        if (p.type === 'Pawn' && possibleMoves.some(m => m.x !== p.x && samePosition(m, king))) {
+            return true;
+        } else if (possibleMoves.some(m => samePosition(m, king))) {
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 function findClosestTile(clientX, clientY) {
