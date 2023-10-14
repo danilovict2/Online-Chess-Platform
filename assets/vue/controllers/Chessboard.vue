@@ -39,11 +39,11 @@ function grapPiece(piece, e) {
     moveCurrentPieceDOMElement(e);
 
     const currentPieceTile = findClosestTile(e.clientX, e.clientY);
-    currentPiece = pieces.value.find(p => samePosition(p, currentPieceTile));
+    currentPiece = pieces.value.get(`${currentPieceTile.x}-${currentPieceTile.y}`);
     if (!((currentPiece.team === 'w' && board.turn % 2 === 0) || (currentPiece.team === 'b' && board.turn % 2 !== 0))) {
         calculatePossibleMoves();
     }
-    
+
 }
 
 function calculatePossibleMoves() {
@@ -55,11 +55,11 @@ function calculatePossibleMoves() {
 function getPossibleMovesThatEndangerTheKing() {
     let movesToRemove = [];
     for (const move of possibleMoves.value) {
-        const currentPieceState = board.pieces;
-        board.pieces = createSimulatedBoardForMove(move, currentPiece.type).pieces;
-        const enemyPieces = board.pieces.filter(p => p.team !== currentPiece.team);
+        const currentPieceState = new Map(board.pieces);
+        board.pieces = createSimulatedBoardPiecesForMove(move);
+        const king = board.getKingOfTeam(currentPiece.team);
 
-        if (canEnemyPieceCaptureKing(enemyPieces)) {
+        if (canEnemyPieceCaptureKing(king)) {
             movesToRemove.push(move);
         }
         board.pieces = currentPieceState;
@@ -67,30 +67,31 @@ function getPossibleMovesThatEndangerTheKing() {
     return movesToRemove;
 }
 
-function createSimulatedBoardForMove(move) {
-    const simulatedBoard = JSON.parse(JSON.stringify(board));
-
-    const pieceAtDestination = simulatedBoard.pieces.find(p => samePosition(p, move));
-    if (pieceAtDestination !== undefined) {
-        simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !samePosition(p, move));
+function createSimulatedBoardPiecesForMove(move) {
+    const simulatedBoardPieces = board.clonePieces();
+    if (simulatedBoardPieces.has(`${move.x}-${move.y}`)) {
+        simulatedBoardPieces.delete(`${move.x}-${move.y}`);
     }
-
-    const simulatedPiece = simulatedBoard.pieces.find(p => samePosition(p, currentPiece));
+    
+    const simulatedPiece = simulatedBoardPieces.get(`${currentPiece.x}-${currentPiece.y}`);
     [simulatedPiece.x, simulatedPiece.y] = [move.x, move.y];
-    return simulatedBoard;
+    simulatedBoardPieces.set(`${simulatedPiece.x}-${simulatedPiece.y}`, simulatedPiece);
+    simulatedBoardPieces.delete(`${currentPiece.x}-${currentPiece.y}`);
+    
+    return simulatedBoardPieces;
 }
 
-function canEnemyPieceCaptureKing(enemyPieces) {
-    const king = board.pieces.find(p => p.type === 'King' && p.team === currentPiece.team);
-    for (const p of enemyPieces) {
+function canEnemyPieceCaptureKing(king) {
+    let enemyPieces = board.getEnemyPieces(king.team);
+    return enemyPieces.some(p => {
         const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
         if (p.type === 'Pawn' && possibleMoves.some(m => m.x !== p.x && samePosition(m, king))) {
             return true;
         } else if (possibleMoves.some(m => samePosition(m, king))) {
             return true;
         }
-    }
-    return false;
+        return false;
+    });
 }
 
 function findClosestTile(clientX, clientY) {
@@ -136,22 +137,22 @@ function dropPiece(e) {
 }
 
 function playMove(direction, toMovetile) {
-    pieces.value = pieces.value.reduce((newPieces, piece) => {
+    const newPieces = new Map();
+    pieces.value.forEach(piece => {
         piece.enPassant = false;
         // FOUND CAPTURED PIECE
         if (samePosition(piece, { x: toMovetile.x, y: toMovetile.y - direction })) {
-            return newPieces;
+            return;
         }
-        if (piece === currentPiece) {
+        if (samePosition(piece, currentPiece)) {
             movePieceWithEnPassantCheck(piece, toMovetile);
         }
         if (canBePromoted(piece)) {
             promotionPawn.value = piece;
         }
-
-        newPieces.push(piece);
-        return newPieces;
-    }, []);
+        newPieces.set(`${piece.x}-${piece.y}`, piece);
+    });
+    pieces.value = newPieces;
     board.turn++;
 }
 
@@ -159,6 +160,7 @@ function movePieceWithEnPassantCheck(piece, toMovetile) {
     piece.enPassant = piece.type === 'Pawn' && Math.abs(piece.y - toMovetile.y) === 2;
     piece.x = toMovetile.x;
     piece.y = toMovetile.y;
+    piece.hasMoved = true;
 }
 
 function canBePromoted(piece) {
@@ -168,13 +170,15 @@ function canBePromoted(piece) {
 
 function promoteTo(pieceType) {
     if (promotionPawn.value) {
-        pieces.value = pieces.value.map(piece => {
+        const newPieces = new Map();
+        pieces.value.forEach(piece => {
             if (piece === promotionPawn.value) {
                 piece.type = pieceType;
                 piece.image = `images/${pieceType.toLowerCase()}_${piece.team}.png`;
             }
-            return piece;
+            newPieces.set(`${piece.x}-${piece.y}`, piece);
         });
+        pieces.value = newPieces;
         promotionPawn.value = null;
     }
 }

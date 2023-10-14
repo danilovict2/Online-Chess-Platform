@@ -32,8 +32,8 @@ export default class PawnReferee extends Referee {
         const direction = (team === 'w') ? 1 : -1;
         if (toMoveTile.y - startTile.y === direction) {
             if (toMoveTile.x - startTile.x === -1 || toMoveTile.x - startTile.x === 1) {
-                const piece = board.pieces.find(p => p.x === toMoveTile.x && p.y === toMoveTile.y - direction && p.enPassant);
-                if (piece) {
+                const piece = board.pieces.get(`${toMoveTile.x}-${toMoveTile.y - direction}`);
+                if (piece && piece.enPassant) {
                     return true;
                 }
             }

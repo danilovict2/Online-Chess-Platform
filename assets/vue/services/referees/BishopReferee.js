@@ -27,12 +27,12 @@ export default class BishopReferee extends Referee {
             }
 
             if (!currentTile) {
-                return false;
+                break;
             }
             if (currentTile.x === toMoveTile.x && currentTile.y === toMoveTile.y) {
                 return true;
             } else if (this.isOccupied(currentTile)) {
-                return false;
+                break;
             }
         }
         

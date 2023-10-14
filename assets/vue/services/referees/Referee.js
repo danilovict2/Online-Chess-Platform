@@ -7,11 +7,11 @@ export default class Referee {
     }
 
     occupiedBy(tile) {
-        return board.pieces.find(piece => piece.x === tile.x && piece.y === tile.y);
+        return board.pieces.get(`${tile.x}-${tile.y}`);
     }
 
     isOccupied(tile) {
-        return Boolean(this.occupiedBy(tile));
+        return this.occupiedBy(tile) !== undefined;
     }
 
     isEnPassant() {
