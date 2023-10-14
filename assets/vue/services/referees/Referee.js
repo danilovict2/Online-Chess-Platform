@@ -18,6 +18,10 @@ export default class Referee {
         return false;
     }
 
+    isCastlingMove() {
+        return false;
+    }
+
     getPossibleMoves(piece) {
         let possibleMoves = [];
         for (let j = BOARD_DIMENSION; j >= 1; --j) {

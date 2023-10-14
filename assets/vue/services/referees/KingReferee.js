@@ -13,7 +13,7 @@ export default class KingReferee extends Referee {
 
     isCastlingMove(startTile, toMoveTile, team) {
         const king = board.getKingOfTeam(team);
-        if (king.hasMoved) return false;
+        if (king.hasMoved || Math.abs(toMoveTile.x - startTile.x) > 2 || startTile.y !== toMoveTile.y) return false;
         let rooks = [];
         board.pieces.forEach(piece => {
             if (piece.type === 'Rook' && piece.team === team && !piece.hasMoved) {
@@ -53,7 +53,8 @@ export default class KingReferee extends Referee {
 
             if (!canAttack) continue;
 
-            return true;
+            if (direction < 0 && toMoveTile.x < startTile.x) return true;
+            else if (direction > 0 && toMoveTile.x > startTile.x) return true;
         }
 
 

@@ -72,12 +72,12 @@ function createSimulatedBoardPiecesForMove(move) {
     if (simulatedBoardPieces.has(`${move.x}-${move.y}`)) {
         simulatedBoardPieces.delete(`${move.x}-${move.y}`);
     }
-    
+
     const simulatedPiece = simulatedBoardPieces.get(`${currentPiece.x}-${currentPiece.y}`);
     [simulatedPiece.x, simulatedPiece.y] = [move.x, move.y];
     simulatedBoardPieces.set(`${simulatedPiece.x}-${simulatedPiece.y}`, simulatedPiece);
     simulatedBoardPieces.delete(`${currentPiece.x}-${currentPiece.y}`);
-    
+
     return simulatedBoardPieces;
 }
 
@@ -125,7 +125,7 @@ function dropPiece(e) {
             const direction =
                 (referee.isEnPassant({ x: currentPiece.x, y: currentPiece.y }, toMovetile, currentPiece.team)) ?
                     (currentPiece.team === 'w') ? 1 : -1 : 0;
-            playMove(direction, toMovetile);
+            playMove(referee, toMovetile);
         } else {
             currentPieceDOMElement.value.style.position = 'relative';
             currentPieceDOMElement.value.style.removeProperty('top');
@@ -136,8 +136,10 @@ function dropPiece(e) {
     }
 }
 
-function playMove(direction, toMovetile) {
+function playMove(referee, toMovetile) {
+    const direction = (referee.isEnPassant({ x: currentPiece.x, y: currentPiece.y }, toMovetile, currentPiece.team)) ? (currentPiece.team === 'w') ? 1 : -1 : 0;
     const newPieces = new Map();
+    const startTile = { x: currentPiece.x, y: currentPiece.y };
     pieces.value.forEach(piece => {
         piece.enPassant = false;
         // FOUND CAPTURED PIECE
@@ -146,6 +148,13 @@ function playMove(direction, toMovetile) {
         }
         if (samePosition(piece, currentPiece)) {
             movePieceWithEnPassantCheck(piece, toMovetile);
+            if (currentPiece.type === 'King' && Math.abs(piece.x - startTile.x) === 2) {
+                const castlingDirection = (currentPiece.x === 7) ? 1 : -2;
+                let closestRook = pieces.value.get(`${currentPiece.x + castlingDirection}-${currentPiece.y}`);
+                newPieces.delete(`${closestRook.x}-${closestRook.y}`);
+                closestRook.x = currentPiece.x - ((castlingDirection === -2) ? -1 : 1);
+                newPieces.set(`${closestRook.x}-${closestRook.y}`, closestRook);
+            }
         }
         if (canBePromoted(piece)) {
             promotionPawn.value = piece;
