@@ -16,6 +16,7 @@ export default class MoveHandler {
                 samePosition(piece, toMovetile) ||
                 (isEnPassant && samePosition(piece, { x: toMovetile.x, y: toMovetile.y - enPassantCaptureDirection }))
             ) {
+                board.turnsSinceLastCapture = 0;
                 continue;
             }
 
@@ -29,6 +30,9 @@ export default class MoveHandler {
             piecesAfterMove.set(`${piece.x}-${piece.y}`, piece);
         }
 
+        if (board.pieces.size === piecesAfterMove.size) {
+            board.turnsSinceLastCapture++;
+        }
         board.pieces = piecesAfterMove;
         board.turn++;
         return piecesAfterMove;

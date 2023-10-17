@@ -89,9 +89,13 @@ function dropPiece(e) {
 }
 
 function checkAndHandleGameOver() {
+    if (board.pieces.size === 2) {
+        endgameMessage.value = 'Draw by Insufficient Material';
+        return;
+    }
+
     const enemyPieces = board.getEnemyPieces(currentPiece.team);
     const possibleMovesCalculator = new PossibleMovesCalculator();
-
     for (const enemy of enemyPieces) {
         if (possibleMovesCalculator.calculatePossibleMovesForPiece(enemy).length > 0) {
             return;
@@ -100,7 +104,9 @@ function checkAndHandleGameOver() {
 
     if (!possibleMovesCalculator.canEnemyPieceCaptureKing(board.getKingOfTeam(enemyPieces[0].team))) {
         endgameMessage.value = 'Stalemate';
-    } else {
+    } else if(board.turnsSinceLastCapture === 50) {
+        endgameMessage.value = 'Draw by 50-Move Rule';
+    }else {
         endgameMessage.value = `The Winner is ${(currentPiece.team === 'w') ? 'White' : 'Black'}`;
     }
 }
