@@ -33,7 +33,7 @@ export default class KingReferee extends Referee {
                 continue;
             }
 
-            const conceringTiles = possibleMoves.filter(m => m.y === king.y);
+            const conceringTiles = [possibleMoves.filter(m => m.y === king.y), {x: king.x, y: king.y}];
             const enemyPieces = board.getEnemyPieces(team);
 
             let canAttack = true;
