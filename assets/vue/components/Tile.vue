@@ -1,30 +1,44 @@
 <template>
     <div class="tile" :class="{
-        'black-tile' : tileNumber % 2 === 0,
-        'white-tile' : tileNumber % 2 !== 0,
-        'highlight' : isPossibleMove,
-        'chess-piece-tile' : containsPiece
+        'black-tile': (x + y) % 2 === 0,
+        'white-tile': (x + y) % 2 !== 0,
+        'highlight': isPossibleMove,
+        'chess-piece-tile': containsPiece
     }" @mousedown="e => grabPiece(e)">
         <div v-show="containsPiece" class="chess-piece" :style="{ backgroundImage: 'url(' + pieceImage + ')' }"></div>
     </div>
 </template>
 
 <script setup>
-const { tileNumber, pieceImage, isPossibleMove } = defineProps({
-    tileNumber : Number,
+import { BLACK_PIECES_START_Y, WHITE_PIECES_START_Y } from '../common/constants.js';
+const { x, y, pieceImage, isPossibleMove } = defineProps({
+    x: Number,
+    y: Number,
     pieceImage: String,
     isPossibleMove: Boolean
 });
-const emit = defineEmits(['movePiece']);
-
+const emit = defineEmits(['grabPiece', 'promotionPossible']);
 const containsPiece = pieceImage !== '';
+
+if (canPromote()) {
+    emit('promotionPossible', x, y);
+}
 
 function grabPiece(e) {
     if (containsPiece) {
-        const piece = e.target; 
-        piece.style.position = 'absolute';   
-        emit('movePiece', piece, e);
+        const pieceDOMElement = e.target;
+        pieceDOMElement.style.position = 'absolute';
+        emit('grabPiece', pieceDOMElement, e);
     }
+}
+
+function canPromote() {
+    if (containsPiece) {
+        const pieceTeam = pieceImage.includes('_w') ? 'w' : 'b';
+        const promotionRow = (pieceTeam === 'w') ? BLACK_PIECES_START_Y : WHITE_PIECES_START_Y;
+        return pieceImage.includes('pawn') && y === promotionRow;
+    }
+    return false;
 }
 </script>
 

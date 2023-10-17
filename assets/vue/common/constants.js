@@ -1,43 +1,54 @@
+import { board } from "../stores/board.js";
+
 export const GRID_COL_SIZE = 100;
 export const BOARD_DIMENSION = 8;
 export const BLACK_PIECES_START_Y = 8;
 export const WHITE_PIECES_START_Y = 1;
-export let pieces = putPiecesOnTheBoard(BLACK_PIECES_START_Y, WHITE_PIECES_START_Y);
+export let pieces = putPiecesOnTheBoard();
 
-function putPiecesOnTheBoard(BLACK_PIECES_START_Y, WHITE_PIECES_START_Y) {
-    const colors = ['b', 'w'];
-    const specialPieces = ['Rook', 'Knight', 'Bishop'];
-    let pieces = new Map();
+function putPiecesOnTheBoard() {
+    const teams = ['b', 'w'];
 
-    for (const color of colors) {
-        const y = (color === 'b') ? BLACK_PIECES_START_Y : WHITE_PIECES_START_Y;
-
-        /* PAWNS */
-        for (let i = 1; i <= BOARD_DIMENSION; ++i) {
-            const pawnY = (color === 'b') ? y - 1 : y + 1;
-            pieces.set(`${i}-${pawnY}`, 
-                {image: `images/pawn_${color}.png`, x: i, y: pawnY, type: 'Pawn', team: color, enPassant: false }
-            );
-        }
-
-        let left = 1, right = 8;
-        for (let specialPiece of specialPieces) {
-            pieces.set(`${left}-${y}`, 
-                { image: `images/${specialPiece.toLowerCase()}_${color}.png`, x: left, y: y, type: specialPiece, team: color, hasMoved: false }
-            );
-            pieces.set(`${right}-${y}`,
-                { image: `images/${specialPiece.toLowerCase()}_${color}.png`, x: right, y: y, type: specialPiece, team: color, hasMoved: false }
-            );
-            left++, right--;
-        }
-
-        /* KING AND QUEEN */
-        pieces.set(`${5}-${y}`, 
-            { image: `images/king_${color}.png`, x: 5, y: y, type: 'King', team: color, hasMoved: false }
-        );
-        pieces.set(`${4}-${y}`,
-            { image: `images/queen_${color}.png`, x: 4, y: y, type: 'Queen', team: color }
-        );
+    for (const team of teams) {
+        const y = (team === 'b') ? BLACK_PIECES_START_Y : WHITE_PIECES_START_Y;
+        addPawnsForTeam(team, y);
+        addSpecialPiecesForTeam(team, y);
+        addKingAndQueenForTeam(team, y);
     }
-    return pieces;
+
+    return board.pieces;
+}
+
+function addPawnsForTeam(team, y) {
+    for (let i = 1; i <= BOARD_DIMENSION; ++i) {
+        const pawnY = (team === 'b') ? y - 1 : y + 1;
+        addPiece('Pawn', team, i, pawnY);
+    }
+}
+
+function addSpecialPiecesForTeam(team, y) {
+    const specialPieces = ['Rook', 'Knight', 'Bishop'];
+    let firstX = 1, lastX = 9;
+    for (let piece of specialPieces) {
+        addPiece(piece, team, firstX, y);
+        addPiece(piece, team, lastX - firstX, y);
+        firstX++;
+    }
+}
+
+function addKingAndQueenForTeam(team, y) {
+    addPiece('King', team, 5, y);
+    addPiece('Queen', team, 4, y);
+}
+
+function addPiece(pieceType, team, x, y) {
+    board.pieces.set(
+        `${x}-${y}`,
+        { 
+            image: `images/${pieceType.toLowerCase()}_${team}.png`, 
+            x: x, y: y,
+            type: pieceType, team: team, 
+            hasMoved: false, enPassant: false 
+        }
+    );
 }
