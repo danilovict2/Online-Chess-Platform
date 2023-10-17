@@ -29,6 +29,7 @@ export default class MoveHandler {
             piecesAfterMove.set(`${piece.x}-${piece.y}`, piece);
         }
 
+        board.pieces = piecesAfterMove;
         board.turn++;
         return piecesAfterMove;
     }

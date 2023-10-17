@@ -5,7 +5,7 @@
             @grab-piece="grabPiece" @promotion-possible="enablePromotionModal"/>
     </div>
     <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
-    <EndGameModal v-show="winner" :winner="winner"/>
+    <EndGameModal v-show="endgameMessage" :message="endgameMessage"/>
 </template>
 
 <script setup>
@@ -13,7 +13,7 @@ import { ref, watch, onMounted } from 'vue';
 import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
-import { createRefereeForType, samePosition } from '../common/helpers.js';
+import { samePosition } from '../common/helpers.js';
 import { board } from '../stores/board.js';
 import { GRID_COL_SIZE, pieces as defaultPieceLayout } from '../common/constants.js';
 import PossibleMovesCalculator from '../services/PossibleMovesCalculator.js';
@@ -28,7 +28,7 @@ let possibleMoves = ref([]);
 let pieces = ref(defaultPieceLayout);
 let promotionPawn = ref(null);
 let currentPieceDOMElement = ref(null);
-let winner = ref(null);
+let endgameMessage = ref(null);
 
 onMounted(() => {
     boardLimits = {
@@ -90,12 +90,19 @@ function dropPiece(e) {
 
 function checkAndHandleGameOver() {
     const enemyPieces = board.getEnemyPieces(currentPiece.team);
+    const possibleMovesCalculator = new PossibleMovesCalculator();
+
     for (const enemy of enemyPieces) {
-        if (new PossibleMovesCalculator().calculatePossibleMovesForPiece(enemy).length > 0) {
+        if (possibleMovesCalculator.calculatePossibleMovesForPiece(enemy).length > 0) {
             return;
         }
     }
-    winner.value = (currentPiece.team === 'w') ? 'White' : 'Black';
+
+    if (!possibleMovesCalculator.canEnemyPieceCaptureKing(board.getKingOfTeam(enemyPieces[0].team))) {
+        endgameMessage.value = 'Stalemate';
+    } else {
+        endgameMessage.value = `The Winner is ${(currentPiece.team === 'w') ? 'White' : 'Black'}`;
+    }
 }
 
 function enablePromotionModal(x, y) {

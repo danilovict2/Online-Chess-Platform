@@ -1,8 +1,8 @@
 <template>
     <div class="modal">
         <div class="body">
-            <div class="checkmate-body">
-                <span>The winner is {{ winner }}</span>
+            <div class="endgame-modal-body">
+                <span>{{ message }}</span>
                 <button @click="resetBoard">Play again</button>
             </div>
         </div>
@@ -10,8 +10,8 @@
 </template>
 
 <script setup>
-const { winner } = defineProps({
-    winner: String
+const { message } = defineProps({
+    message: String
 });
 
 function resetBoard() {
@@ -20,18 +20,20 @@ function resetBoard() {
 </script>
 
 <style scoped>
-.checkmate-body {
+.endgame-modal-body {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
     gap: 48px;
 }
 
-.checkmate-body > span {
+.endgame-modal-body > span {
     font-size: 32px;
     color: white;
 }
 
-.checkmate-body > button {
+.endgame-modal-body > button {
     background-color: rgba(0, 0, 0, 0.8);
     padding: 24px 48px;
     border: none;
@@ -40,7 +42,7 @@ function resetBoard() {
     color: white;
 }
 
-.checkmate-body > button:hover {
+.endgame-modal-body > button:hover {
     cursor: pointer;
 }
 </style>
