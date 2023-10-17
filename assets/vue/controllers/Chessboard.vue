@@ -5,13 +5,15 @@
             @grab-piece="grabPiece" @promotion-possible="enablePromotionModal"/>
     </div>
     <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
+    <EndGameModal v-show="winner" :winner="winner"/>
 </template>
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import Tile from '../components/Tile.vue';
-import PromotionModal from '../components/PromotionModal.vue';
-import { samePosition } from '../common/helpers.js';
+import PromotionModal from '../components/modals/PromotionModal.vue';
+import EndGameModal from '../components/modals/EndGameModal.vue';
+import { createRefereeForType, samePosition } from '../common/helpers.js';
 import { board } from '../stores/board.js';
 import { GRID_COL_SIZE, pieces as defaultPieceLayout } from '../common/constants.js';
 import PossibleMovesCalculator from '../services/PossibleMovesCalculator.js';
@@ -26,6 +28,7 @@ let possibleMoves = ref([]);
 let pieces = ref(defaultPieceLayout);
 let promotionPawn = ref(null);
 let currentPieceDOMElement = ref(null);
+let winner = ref(null);
 
 onMounted(() => {
     boardLimits = {
@@ -73,6 +76,7 @@ function dropPiece(e) {
 
         if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
             pieces.value = new MoveHandler().playMove(currentPiece, toMovetile);
+            checkAndHandleGameOver();
         } else {
             currentPieceDOMElement.value.style.position = 'relative';
             currentPieceDOMElement.value.style.removeProperty('top');
@@ -82,6 +86,16 @@ function dropPiece(e) {
         currentPieceDOMElement.value = null;
         possibleMoves.value = [];
     }
+}
+
+function checkAndHandleGameOver() {
+    const enemyPieces = board.getEnemyPieces(currentPiece.team);
+    for (const enemy of enemyPieces) {
+        if (new PossibleMovesCalculator().calculatePossibleMovesForPiece(enemy).length > 0) {
+            return;
+        }
+    }
+    winner.value = (currentPiece.team === 'w') ? 'White' : 'Black';
 }
 
 function enablePromotionModal(x, y) {
