@@ -6,6 +6,7 @@ export const board = reactive({
     pieces: new Map(),
     turn: 1,
     turnsSinceLastCapture: 0,
+    pieceStateHistory: [],
 
     updateState(pieces) {
         this.state = [];

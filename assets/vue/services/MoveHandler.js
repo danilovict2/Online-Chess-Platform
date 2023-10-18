@@ -33,6 +33,7 @@ export default class MoveHandler {
         if (board.pieces.size === piecesAfterMove.size) {
             board.turnsSinceLastCapture++;
         }
+        
         board.pieces = piecesAfterMove;
         board.turn++;
         return piecesAfterMove;
