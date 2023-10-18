@@ -76,7 +76,7 @@ function dropPiece(e) {
 
         if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
             pieces.value = new MoveHandler().playMove(currentPiece, toMovetile);
-            board.pieceStateHistory.push(JSON.stringify(Array.from(pieces.value)));
+            board.addPieceStateToHistory();
             checkAndHandleGameOver();
         } else {
             currentPieceDOMElement.value.style.position = 'relative';
@@ -93,10 +93,12 @@ function checkAndHandleGameOver() {
     if (board.pieces.size === 2) {
         endgameMessage.value = 'Draw by Insufficient Material';
         return;
-    }
-
-    if (board.pieceStateHistory.filter(state => state === JSON.stringify(Array.from(pieces.value))).length >= 3) {
+    } else if(board.turnsSinceLastCapture === 50 && board.turn % 2 !== 0) {
+        endgameMessage.value = 'Draw by 50-Move Rule';
+        return;
+    } else if (board.isThreefoldRepetition() && board.turn % 2 !== 0) {
         endgameMessage.value = 'Draw by Threefold Repetition';
+        return;
     }
 
     const enemyPieces = board.getEnemyPieces(currentPiece.team);
@@ -109,9 +111,7 @@ function checkAndHandleGameOver() {
 
     if (!possibleMovesCalculator.canEnemyPieceCaptureKing(board.getKingOfTeam(enemyPieces[0].team))) {
         endgameMessage.value = 'Draw by Stalemate';
-    } else if(board.turnsSinceLastCapture === 50) {
-        endgameMessage.value = 'Draw by 50-Move Rule';
-    }else {
+    } else {
         endgameMessage.value = `The Winner is ${(currentPiece.team === 'w') ? 'White' : 'Black'}`;
     }
 }

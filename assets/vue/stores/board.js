@@ -52,5 +52,24 @@ export const board = reactive({
             clonedPieces.set(key, {...piece});
         });
         return clonedPieces;
+    },
+
+    addPieceStateToHistory() {
+        const currentPieceState = this.getCurrentPieceState();
+        this.pieceStateHistory.push(JSON.stringify(currentPieceState));
+    },
+
+    isThreefoldRepetition() {
+        const currentPieceState = JSON.stringify(this.getCurrentPieceState());
+        return this.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
+    },
+
+    getCurrentPieceState() {
+        const currentPieceState = [];
+        this.pieces.forEach(piece => {
+            currentPieceState.push(`${piece.x}-${piece.y}-${piece.type}`);
+        });
+
+        return currentPieceState;
     }
 });
