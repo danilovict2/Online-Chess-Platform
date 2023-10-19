@@ -1,4 +1,4 @@
-import { createRefereeForType } from "../../common/helpers.js";
+import { createRefereeForType, getEnemyPieces, getKingOfTeam } from "../../common/helpers.js";
 import { board } from "../../stores/board.js";
 import Referee from "./Referee.js";
 
@@ -12,7 +12,7 @@ export default class KingReferee extends Referee {
     }
 
     isCastlingMove(startTile, toMoveTile, team) {
-        const king = board.getKingOfTeam(team);
+        const king = getKingOfTeam(team);
         if (king.hasMoved || Math.abs(toMoveTile.x - startTile.x) > 2 || startTile.y !== toMoveTile.y) return false;
         let rooks = [];
         board.pieces.forEach(piece => {
@@ -33,8 +33,8 @@ export default class KingReferee extends Referee {
                 continue;
             }
 
-            const conceringTiles = [possibleMoves.filter(m => m.y === king.y), {x: king.x, y: king.y}];
-            const enemyPieces = board.getEnemyPieces(team).filter(p => p.type !== 'King');
+            const conceringTiles = [...possibleMoves.filter(m => m.y === king.y), {x: king.x, y: king.y}];
+            const enemyPieces = getEnemyPieces(team).filter(p => p.type !== 'King');
 
             let canAttack = true;
             for (const enemy of enemyPieces) {

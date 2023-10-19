@@ -1,4 +1,4 @@
-import { createRefereeForType, samePosition } from "../common/helpers.js";
+import { createRefereeForType, getEnemyPieces, getKingOfTeam, samePosition } from "../common/helpers.js";
 import { board } from "../stores/board.js";
 
 export default class PossibleMovesCalculator {
@@ -14,7 +14,7 @@ export default class PossibleMovesCalculator {
 
         for (const move of possibleMoves) {
             board.pieces = this.createSimulatedBoardPiecesForMove(move, piece);
-            const king = board.getKingOfTeam(piece.team);
+            const king = getKingOfTeam(piece.team);
     
             if (this.canEnemyPieceCaptureKing(king)) {
                 possibleMovesThatEndangerTheKing.push(move);
@@ -40,7 +40,7 @@ export default class PossibleMovesCalculator {
     }
     
     canEnemyPieceCaptureKing(king) {
-        let enemyPieces = board.getEnemyPieces(king.team);
+        let enemyPieces = getEnemyPieces(king.team);
         return enemyPieces.some(p => {
             const possibleMoves = createRefereeForType(p.type).getPossibleMoves(p);
             if (p.type === 'Pawn' && possibleMoves.some(m => m.x !== p.x && samePosition(m, king))) {

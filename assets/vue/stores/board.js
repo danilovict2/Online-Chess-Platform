@@ -24,28 +24,6 @@ export const board = reactive({
         }
     },
 
-    getEnemyPieces(nonEnemyTeam) {
-        let enemyPieces = [];
-        board.pieces.forEach(piece => {
-            if (piece.team !== nonEnemyTeam) {
-                enemyPieces.push(piece);
-            }
-        });
-
-        return enemyPieces;
-    },
-
-    getKingOfTeam(team) {
-        let king = {};
-        board.pieces.forEach(piece => {
-            if (piece.type === 'King' && piece.team === team) {
-                king = piece;
-            }
-        });
-
-        return king;
-    },
-
     clonePieces() {
         let clonedPieces = new Map();
         this.pieces.forEach((piece, key) => {
@@ -57,11 +35,6 @@ export const board = reactive({
     addPieceStateToHistory() {
         const currentPieceState = this.getCurrentPieceState();
         this.pieceStateHistory.push(JSON.stringify(currentPieceState));
-    },
-
-    isThreefoldRepetition() {
-        const currentPieceState = JSON.stringify(this.getCurrentPieceState());
-        return this.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
     },
 
     getCurrentPieceState() {

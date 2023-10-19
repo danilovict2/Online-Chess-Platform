@@ -19,6 +19,7 @@ import { GRID_COL_SIZE, pieces as defaultPieceLayout } from '../common/constants
 import PossibleMovesCalculator from '../services/PossibleMovesCalculator.js';
 import PromotionHandler from '../services/PromotionHandler.js';
 import MoveHandler from '../services/MoveHandler.js';
+import EndgameHandler from '../services/EndgameHandler.js';
 
 const chessboard = ref(null);
 
@@ -28,7 +29,7 @@ let possibleMoves = ref([]);
 let pieces = ref(defaultPieceLayout);
 let promotionPawn = ref(null);
 let currentPieceDOMElement = ref(null);
-let endgameMessage = ref(null);
+let endgameMessage = ref('');
 
 onMounted(() => {
     boardLimits = {
@@ -77,7 +78,7 @@ function dropPiece(e) {
         if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
             pieces.value = new MoveHandler().playMove(currentPiece, toMovetile);
             board.addPieceStateToHistory();
-            checkAndHandleGameOver();
+            endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
         } else {
             currentPieceDOMElement.value.style.position = 'relative';
             currentPieceDOMElement.value.style.removeProperty('top');
@@ -89,32 +90,6 @@ function dropPiece(e) {
     }
 }
 
-function checkAndHandleGameOver() {
-    if (board.pieces.size === 2) {
-        endgameMessage.value = 'Draw by Insufficient Material';
-        return;
-    } else if(board.turnsSinceLastCapture === 50 && board.turn % 2 !== 0) {
-        endgameMessage.value = 'Draw by 50-Move Rule';
-        return;
-    } else if (board.isThreefoldRepetition() && board.turn % 2 !== 0) {
-        endgameMessage.value = 'Draw by Threefold Repetition';
-        return;
-    }
-
-    const enemyPieces = board.getEnemyPieces(currentPiece.team);
-    const possibleMovesCalculator = new PossibleMovesCalculator();
-    for (const enemy of enemyPieces) {
-        if (possibleMovesCalculator.calculatePossibleMovesForPiece(enemy).length > 0) {
-            return;
-        }
-    }
-
-    if (!possibleMovesCalculator.canEnemyPieceCaptureKing(board.getKingOfTeam(enemyPieces[0].team))) {
-        endgameMessage.value = 'Draw by Stalemate';
-    } else {
-        endgameMessage.value = `The Winner is ${(currentPiece.team === 'w') ? 'White' : 'Black'}`;
-    }
-}
 
 function enablePromotionModal(x, y) {
     promotionPawn.value = board.pieces.get(`${x}-${y}`);
