@@ -11,6 +11,7 @@ export const board = reactive({
     updateState(pieces) {
         this.state = [];
         this.pieces = pieces;
+
         for (let j = BOARD_DIMENSION; j >= 1; --j) {
             for (let i = 1; i <= BOARD_DIMENSION; ++i) {
                 const foundPiece = pieces.get(`${i}-${j}`);
@@ -22,6 +23,10 @@ export const board = reactive({
                 });
             }
         }
+
+        if (this.turn > 1) {
+            this.addPieceStateToHistory();
+        } 
     },
 
     clonePieces() {

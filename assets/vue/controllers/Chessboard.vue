@@ -1,15 +1,15 @@
 <template>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
-            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" 
-            @grab-piece="grabPiece" @promotion-possible="enablePromotionModal"/>
+            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece"
+            @promotion-possible="enablePromotionModal" />
     </div>
     <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
-    <EndGameModal v-show="endgameMessage" :message="endgameMessage"/>
+    <EndGameModal v-show="endgameMessage" :message="endgameMessage" />
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
@@ -26,10 +26,11 @@ const chessboard = ref(null);
 let boardLimits = null;
 let currentPiece = null;
 let possibleMoves = ref([]);
-let pieces = ref(defaultPieceLayout);
 let promotionPawn = ref(null);
 let currentPieceDOMElement = ref(null);
 let endgameMessage = ref('');
+
+board.updateState(defaultPieceLayout);
 
 onMounted(() => {
     boardLimits = {
@@ -39,8 +40,6 @@ onMounted(() => {
         maxY: chessboard.value.offsetTop + chessboard.value.clientHeight - 90
     };
 });
-
-watch(pieces, newPieces => board.updateState(newPieces), { deep: true, immediate: true });
 
 function grabPiece(pieceDOMElement, e) {
     currentPieceDOMElement.value = pieceDOMElement;
@@ -76,13 +75,10 @@ function dropPiece(e) {
         const toMovetile = findClosestTile(e.clientX, e.clientY);
 
         if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
-            pieces.value = new MoveHandler().playMove(currentPiece, toMovetile);
-            board.addPieceStateToHistory();
+            board.updateState(new MoveHandler().playMove(currentPiece, toMovetile));
             endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
         } else {
-            currentPieceDOMElement.value.style.position = 'relative';
-            currentPieceDOMElement.value.style.removeProperty('top');
-            currentPieceDOMElement.value.style.removeProperty('left');
+            resetCurrentPieceDOMElementPosition();
         }
 
         currentPieceDOMElement.value = null;
@@ -90,13 +86,18 @@ function dropPiece(e) {
     }
 }
 
+function resetCurrentPieceDOMElementPosition() {
+    currentPieceDOMElement.value.style.position = 'relative';
+    currentPieceDOMElement.value.style.removeProperty('top');
+    currentPieceDOMElement.value.style.removeProperty('left');
+}
 
 function enablePromotionModal(x, y) {
     promotionPawn.value = board.pieces.get(`${x}-${y}`);
 }
 
 function promoteTo(pieceType) {
-    pieces.value = new PromotionHandler().promote(promotionPawn.value, pieceType);
+    board.updateState(new PromotionHandler().promote(promotionPawn.value, pieceType));
     promotionPawn.value = null;
 }
 </script>
