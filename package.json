@@ -21,5 +21,8 @@
         "dev": "encore dev",
         "watch": "encore dev --watch",
         "build": "encore production --progress"
+    },
+    "dependencies": {
+        "vue-timer-hook": "^1.0.84"
     }
 }

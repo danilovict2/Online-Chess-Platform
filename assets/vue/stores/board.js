@@ -1,5 +1,6 @@
 import { reactive } from "vue";
-import { BOARD_DIMENSION } from "../common/constants.js";
+import { BOARD_DIMENSION, tenMinutes } from "../common/constants.js";
+import { useTimer } from "vue-timer-hook";
 
 export const board = reactive({
     state: [],
@@ -7,6 +8,8 @@ export const board = reactive({
     turn: 1,
     turnsSinceLastCapture: 0,
     pieceStateHistory: [],
+    blackTimer: useTimer(new Date().setSeconds(new Date().getSeconds() + 600)),
+    whiteTimer: useTimer(new Date().setSeconds(new Date().getSeconds() + 600)),
 
     updateState(pieces) {
         this.state = [];

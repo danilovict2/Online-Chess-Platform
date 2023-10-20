@@ -1,15 +1,17 @@
 <template>
+    <div class="black-data">{{ board.blackTimer.minutes }} : {{ board.blackTimer.seconds }}</div>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece"
             @promotion-possible="enablePromotionModal" />
     </div>
+    <div class="white-data">{{ board.whiteTimer.minutes }} : {{ board.whiteTimer.seconds }}</div>
     <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
     <EndGameModal v-show="endgameMessage" :message="endgameMessage" />
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watchEffect } from 'vue';
 import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
@@ -31,6 +33,18 @@ let currentPieceDOMElement = ref(null);
 let endgameMessage = ref('');
 
 board.updateState(defaultPieceLayout);
+board.blackTimer.pause();
+
+watchEffect(() => {
+    if (board.whiteTimer.isExpired || board.blackTimer.isExpired) {
+        endgameMessage.value = board.whiteTimer.isExpired ? 'Black won on time' : 'White won on time';
+    }
+    
+    if (endgameMessage.value) {
+        board.whiteTimer.pause();
+        board.blackTimer.pause();
+    }
+});
 
 onMounted(() => {
     boardLimits = {
@@ -75,6 +89,13 @@ function dropPiece(e) {
         const toMovetile = findClosestTile(e.clientX, e.clientY);
 
         if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
+            if (board.whiteTimer.isRunning) {
+                board.whiteTimer.pause();
+                board.blackTimer.resume();
+            } else {
+                board.whiteTimer.resume();
+                board.blackTimer.pause();
+            }
             board.updateState(new MoveHandler().playMove(currentPiece, toMovetile));
             endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
         } else {
@@ -109,5 +130,12 @@ function promoteTo(pieceType) {
     grid-template-rows: repeat(8, 100px);
     width: 800px;
     height: 800px;
+}
+
+.black-data,
+.white-data {
+    display: flex;
+    flex-direction: row-reverse;
+    font-size: 2rem;
 }
 </style>
