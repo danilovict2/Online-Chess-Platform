@@ -1,1 +1,1 @@
-# Symfony-6-Chess.com-clone
+# Symfony-6-Chess
