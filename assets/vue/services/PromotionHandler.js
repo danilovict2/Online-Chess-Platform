@@ -12,7 +12,6 @@ export default class PromotionHandler {
             piecesAfterPromotion.set(`${piece.x}-${piece.y}`, piece);
         }
         
-        board.pieces = piecesAfterPromotion;
         return piecesAfterPromotion;
     }
 }

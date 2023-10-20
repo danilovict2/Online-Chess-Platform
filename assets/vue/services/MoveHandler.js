@@ -34,7 +34,6 @@ export default class MoveHandler {
             board.turnsSinceLastCapture++;
         }
         
-        board.pieces = piecesAfterMove;
         board.turn++;
         return piecesAfterMove;
     }
@@ -52,6 +51,8 @@ export default class MoveHandler {
 
         const closestRook = board.pieces.get(`${king.x + distanceToClosestRook}-${king.y}`);
         pieceState.delete(`${closestRook.x}-${closestRook.y}`);
-        pieceState.set(`${king.x - castlingDirection}-${closestRook.y}`, closestRook);
+
+        closestRook.x = king.x - castlingDirection;
+        pieceState.set(`${closestRook.x}-${closestRook.y}`, closestRook);
     }
 }
