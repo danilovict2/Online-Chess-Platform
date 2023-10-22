@@ -6,7 +6,7 @@
         'chess-piece-tile': containsPiece
     }">
         <div class="rank" v-show="rank" v-text="rank"></div>
-        <div v-show="containsPiece" class="chess-piece" :style="{ backgroundImage: 'url(' + pieceImage + ')' }"
+        <div v-show="containsPiece" class="chess-piece" :style="{ backgroundImage: 'url(/' + pieceImage + ')' }"
             @mousedown="e => grabPiece(e)"></div>
         <div class="file" v-show="file" v-text="file"></div>
     </div>
