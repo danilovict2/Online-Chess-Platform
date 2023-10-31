@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<h1>Play</h1>
+
+	<form {{ stimulus_controller('game') }} action="{{ url('create_game') }}" method="POST" class="modes d-flex justify-content-around row my-5">
+		<input type="hidden" name="token" value="{{ csrf_token('create-game') }}">
+		<input type="hidden" name="game-length" value="0" data-game-target="gameLength">
+
+		<button type="button" class="btn btn-danger col-md-1" 
+			data-action="game#createGameOfLength" data-game-length-param="3">3 MIN</button>
+
+		<button type="button" class="btn btn-danger col-md-1" 
+			data-action="game#createGameOfLength" data-game-length-param="5">5 MIN</button>
+		
+		<button type="button" class="btn btn-danger col-md-1" 
+			data-action="game#createGameOfLength" data-game-length-param="10">10 MIN</button>
+		
+		<button type="button" class="btn btn-danger col-md-1" 
+			data-action="game#createGameOfLength" data-game-length-param="15">15 MIN</button>
+		
+		<button type="button" class="btn btn-danger col-md-1" 
+			data-action="game#createGameOfLength" data-game-length-param="30">30 MIN</button>
+	</form>
+{% endblock %}

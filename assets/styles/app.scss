@@ -1,0 +1,15 @@
+@import "~bootstrap/scss/bootstrap";
+@import "modal.css";
+@import "fonts/fonts.css";
+
+body {
+    background-color: #202020;
+    color: white;
+    font-family: 'segoe_uiregular';
+}
+
+.game {
+    display: grid;
+    place-content: center;
+    height: 100vh;
+}

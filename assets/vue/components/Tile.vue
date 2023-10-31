@@ -69,16 +69,15 @@ function canPromote() {
     background-size: 100px;
 }
 
-
 .rank {
     position: absolute;
     font-size: 20px;
 }
 
-.tile .file {
+.file {
     position: absolute;
     bottom: 0;
-    margin-bottom: 4.7rem;
+    margin-bottom: 5rem;
     margin-left: 5.5rem;
     font-size: 20px;
 }
