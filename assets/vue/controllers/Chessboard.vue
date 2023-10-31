@@ -23,6 +23,11 @@ import PromotionHandler from '../services/PromotionHandler.js';
 import MoveHandler from '../services/MoveHandler.js';
 import EndgameHandler from '../services/EndgameHandler.js';
 
+const { game } = defineProps({
+    game: Object
+});
+board.setClocks(game.length);
+
 const chessboard = ref(null);
 
 let boardLimits = null;

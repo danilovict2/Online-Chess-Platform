@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 #[Route('/game')]
 class GameController extends AbstractController
@@ -29,9 +30,10 @@ class GameController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'game')]
-    public function game(string $slug, GameRepository $gameRepository): Response
+    public function game(string $slug, GameRepository $gameRepository, ObjectNormalizer $normalizer): Response
     {
-        $game = $gameRepository->findOneBySlug($slug);
+        $game = $normalizer->normalize($gameRepository->findOneBySlug($slug));
+
         if (!$game) {
             throw $this->createNotFoundException();
         }
