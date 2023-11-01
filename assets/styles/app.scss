@@ -7,6 +7,7 @@
     --bs-danger-bg-subtle: #fa412d;
     --bs-danger-text-emphasis: white;
     --bs-danger-border-subtle: var(--bs-danger-bg-subtle);
+    --main-bg-color: #202020;
 }
 
 html, body {
@@ -15,7 +16,7 @@ html, body {
 }
 
 body {
-    background-color: #202020;
+    background-color: var(--main-bg-color);
     color: white;
     font-family: 'segoe_uiregular';
 }

@@ -1,6 +1,7 @@
 .login-background {
     background: url('https://www.chess.com/bundles/web/images/web/chessboard-background.346891ba.png') repeat-x bottom;
     background-size: contain;
+    background-color: #302e2b;
 }
 
 .login-container {
