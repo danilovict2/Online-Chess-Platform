@@ -1,6 +1,18 @@
 @import "~bootstrap/scss/bootstrap";
 @import "modal.css";
 @import "fonts/fonts.css";
+@import "login.css";
+
+:root {
+    --bs-danger-bg-subtle: #fa412d;
+    --bs-danger-text-emphasis: white;
+    --bs-danger-border-subtle: var(--bs-danger-bg-subtle);
+}
+
+html, body {
+    margin: 0;
+    height: 100%;
+}
 
 body {
     background-color: #202020;

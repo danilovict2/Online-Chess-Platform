@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Log in!{% endblock %}
+
+{% block body %}
+	<div class="login-background h-100">
+		<form method="post" class="d-flex justify-content-center align-items-center h-75">
+			<div class="login-container">
+				<div class="login-form p-3 d-flex flex-column justify-content-start align-items-center gap-3">
+					{% if error %}
+						<div class="alert alert-danger d-flex justify-content-center align-items-center w-100">
+							{{ error.messageKey|trans(error.messageData, 'security') }}
+						</div>
+					{% endif %}
+
+					<div class="email position-relative w-100 mt-3 ml-3">
+						<i class="fa-solid fa-user position-absolute top-0 start-0" style="color: #9e9d9c; padding-top: 8px; padding-left: 5px"></i>
+						<input type="email" class="px-4" value="{{ last_username }}" name="email" id="email" autocomplete="email" required placeholder="Email">
+					</div>
+
+					<div class="password position-relative w-100 mb-0">
+						<i class="fa-solid fa-lock position-absolute top-0 start-0" style="color: #9e9d9c; padding-top: 8px; padding-left: 5px"></i>
+						<input type="password" class="px-4" name="password" id="password" autocomplete="current-password" required placeholder="Password">
+                    </div>
+
+					<div class="authentication-login-options d-flex justify-content-between w-100 mb-5">
+						<div class="remember-me">
+							<input type="checkbox" name="_remember_me" id="_remember_me">
+							<label for="_remember_me">Remember me</label>
+						</div>
+						<a href="#" class="forgot-password">Forgot Password?</a>
+					</div>
+
+					<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+					<button class="btn btn-lg w-75" type="submit">
+						Log in
+					</button>
+				</div>
+
+				<h4 class="login-signup w-100 h-100 mb-0 mt-3 text-center p-3">
+                    <span class="login-text">New?</span>
+					<a href="#" class="login-is-new">
+						<span class="login-text-link">Sign up - and start playing chess!</span>
+					</a>
+				</h4>
+			</div>
+		</form>
+	</div>
+{% endblock %}

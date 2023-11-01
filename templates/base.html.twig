@@ -10,15 +10,12 @@
 		{% endblock %}
 	</head>
 	<body>
-        {% if app.request.get('_route') != 'game' %}
+        {% if is_granted("ROLE_USER") and app.request.get('_route') != 'game' %}
             {{ component('Navbar') }} 
         {% endif %}
 
-        <div class="container">
-            {% block body %}{% endblock %}    
-        </div>
+        {% block body %}{% endblock %}    
 		
-
 		{% block javascripts %}
 			{{ encore_entry_script_tags('app') }}
 		{% endblock %}

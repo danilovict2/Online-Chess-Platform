@@ -1,0 +1,44 @@
+.login-background {
+    background: url('https://www.chess.com/bundles/web/images/web/chessboard-background.346891ba.png') repeat-x bottom;
+    background-size: contain;
+}
+
+.login-container {
+    background-color: #262421;
+    border-radius: 1rem;
+    max-width: 100%;
+    width: 25rem;
+}
+
+.email input, .password input {
+    background-color: #3c3a38;
+    border: 1px solid #504e4c;
+    border-radius: .3rem;
+    color: white;
+    height: 2.1rem;
+    width: 100%;
+}
+
+.login-container button {
+    background-color: rgb(129, 182, 76);
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.login-container a{
+    text-decoration: none;
+    color: #0297ce;
+}
+
+.login-container .authentication-login-options {
+    font-size: 14px;
+    color: #9d9c9a;
+}
+
+.login-signup {
+    background-color: rgba(0, 0, 0, .14);
+    font-weight: 600;
+    font-size: 1rem;
+}
