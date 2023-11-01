@@ -1,5 +1,5 @@
 <template>
-    <div class="modal">
+    <div class="custom-modal">
         <div class="body">
             <img :src="`images/rook_${team}.png`" @click="promoteTo('Rook')">
             <img :src="`images/bishop_${team}.png`" @click="promoteTo('Bishop')">

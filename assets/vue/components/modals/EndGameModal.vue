@@ -1,5 +1,5 @@
 <template>
-    <div class="modal">
+    <div class="custom-modal">
         <div class="body">
             <div class="endgame-modal-body">
                 <span>{{ message }}</span>

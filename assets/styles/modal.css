@@ -1,4 +1,4 @@
-.modal {
+.custom-modal {
     position: absolute;
     top: 0;
     left: 0;
@@ -6,7 +6,7 @@
     bottom: 0;
 }
 
-.modal > .body {
+.custom-modal > .body {
     position: absolute;
     top: calc(50% - 150px);
     left: calc(50% - 400px);
@@ -18,13 +18,13 @@
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-.modal > .body > img {
+.custom-modal > .body > img {
     height: 120px;
     padding: 20px;
     clip-path: circle(50% at center);
 }
 
-.modal > .body > img:hover {
+.custom-modal > .body > img:hover {
     background-color: rgba(255, 255, 255, 0.3);
     cursor: pointer;
 }
