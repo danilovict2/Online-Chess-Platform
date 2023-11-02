@@ -28,7 +28,7 @@
 							<input type="checkbox" name="_remember_me" id="_remember_me">
 							<label for="_remember_me">Remember me</label>
 						</div>
-						<a href="#" class="forgot-password">Forgot Password?</a>
+						<a href="{{ path('app_forgot_password_request') }}" class="forgot-password">Forgot Password?</a>
 					</div>
 
 					<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
@@ -40,7 +40,7 @@
 
 				<h4 class="login-signup w-100 h-100 mb-0 mt-3 text-center p-3">
                     <span class="login-text">New?</span>
-					<a href="#" class="login-is-new">
+					<a href="{{ path('app_register') }}" class="login-is-new">
 						<span class="login-text-link">Sign up - and start playing chess!</span>
 					</a>
 				</h4>
