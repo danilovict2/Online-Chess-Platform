@@ -4,8 +4,8 @@
 	<div class="container">
 		<h1>Play</h1>
 
-		<form {{ stimulus_controller('game') }} action="{{ url('create_game') }}" method="POST" class="modes d-flex justify-content-around row my-5">
-			<input type="hidden" name="token" value="{{ csrf_token('create-game') }}">
+		<form {{ stimulus_controller('game') }} action="{{ url('enter_game_matchmaking') }}" method="POST" class="modes d-flex justify-content-around row my-5">
+			<input type="hidden" name="token" value="{{ csrf_token('enter-game-matchmaking') }}">
 			<input type="hidden" name="game-length" value="0" data-game-target="gameLength">
 
 			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="3">3 MIN</button>

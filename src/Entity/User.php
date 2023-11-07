@@ -34,6 +34,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, unique: true)]
     private ?string $username = null;
 
+    #[ORM\Column]
+    private ?bool $isInGame = false;
+
+    #[ORM\ManyToOne(inversedBy: 'players')]
+    private ?Game $game = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -112,6 +118,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUsername(string $username): static
     {
         $this->username = $username;
+
+        return $this;
+    }
+
+    public function isInGame(): ?bool
+    {
+        return $this->isInGame;
+    }
+
+    public function setIsInGame(bool $isInGame): static
+    {
+        $this->isInGame = $isInGame;
+
+        return $this;
+    }
+
+    public function getGame(): ?Game
+    {
+        return $this->game;
+    }
+
+    public function setGame(?Game $game): static
+    {
+        $this->game = $game;
 
         return $this;
     }
