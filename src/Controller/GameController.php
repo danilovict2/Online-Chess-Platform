@@ -27,8 +27,12 @@ class GameController extends AbstractController
     }
 
     #[Route('/waiting-room', name: 'waiting_room')]
-    public function waitingRoom(): Response
+    public function waitingRoom(Request $request): Response
     {
+        if (!$request->headers->get('referer')) {
+            return $this->redirectToRoute('homepage');
+        }
+
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if ($user->getGame()) {
@@ -41,11 +45,8 @@ class GameController extends AbstractController
     #[Route('/{slug}', name: 'game')]
     public function game(string $slug, GameRepository $gameRepository): Response
     {
-        $normalizer = new ObjectNormalizer(defaultContext: [
-            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => fn (Game $game) => null
-        ]);
+        $normalizer = new ObjectNormalizer(defaultContext: [AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => fn () => null]);
         $serializer = new Serializer([$normalizer]);
-        
         $game = $serializer->normalize($gameRepository->findOneBySlug($slug));
 
         if (!$game) {

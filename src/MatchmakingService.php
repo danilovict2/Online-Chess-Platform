@@ -38,16 +38,13 @@ class MatchmakingService
     private function joinGame(User $user, int $gameLength): RedirectResponse
     {
         $queuedMatches = $this->matchQueueRepository->findAll();
-        if (count($queuedMatches) === 0) {
+        if (empty($queuedMatches)) {
             throw new GameNotFoundException();
         }
-        
-        $game = new Game();
-        $game->setLength($gameLength)
-            ->addPlayer($queuedMatches[0]->getWaitingPlayer())
-            ->addPlayer($user);
+
+        $game = (new Game())->setLength($gameLength)->addPlayer($queuedMatches[0]->getWaitingPlayer())->addPlayer($user);
         $user->setIsInGame(true);
-        
+
         $this->entityManager->persist($game);
         $this->entityManager->persist($user);
         $this->entityManager->remove($queuedMatches[0]);
@@ -61,8 +58,7 @@ class MatchmakingService
 
     private function addUserToMatchmakingQueue(User $user): RedirectResponse
     {
-        $matchQueue = new MatchQueue();
-        $matchQueue->setWaitingPlayer($user);
+        $matchQueue = (new MatchQueue())->setWaitingPlayer($user);
         $user->setIsInGame(true);
 
         $this->entityManager->persist($matchQueue);

@@ -64,7 +64,7 @@ class Game
     }
 
     #[ORM\PrePersist]
-    public function setSlugValue(): void 
+    public function setSlugValue(): void
     {
         $this->slug = bin2hex(random_bytes(20));
     }
@@ -98,4 +98,4 @@ class Game
 
         return $this;
     }
-} 
+}
