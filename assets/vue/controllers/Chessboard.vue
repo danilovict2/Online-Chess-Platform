@@ -103,7 +103,6 @@ function dropPiece(e) {
             }
             board.updateState(new MoveHandler().playMove(currentPiece, toMovetile));
             endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
-            // TODO: fix endgame modal
         } else {
             resetCurrentPieceDOMElementPosition();
         }
