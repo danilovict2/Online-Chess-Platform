@@ -31,13 +31,13 @@ class MatchmakingService
         try {
             return $this->joinGame($user, $gameLength);
         } catch (GameNotFoundException) {
-            return $this->addUserToMatchmakingQueue($user);
+            return $this->addUserToMatchmakingQueue($user, $gameLength);
         }
     }
 
     private function joinGame(User $user, int $gameLength): RedirectResponse
     {
-        $queuedMatches = $this->matchQueueRepository->findAll();
+        $queuedMatches = $this->matchQueueRepository->findBy(['gameLength' => $gameLength]);
         if (empty($queuedMatches)) {
             throw new GameNotFoundException();
         }
@@ -56,9 +56,9 @@ class MatchmakingService
         return new RedirectResponse($this->urlGenerator->generate('game', ['slug' => $game->getSlug()]));
     }
 
-    private function addUserToMatchmakingQueue(User $user): RedirectResponse
+    private function addUserToMatchmakingQueue(User $user, int $gameLength): RedirectResponse
     {
-        $matchQueue = (new MatchQueue())->setWaitingPlayer($user);
+        $matchQueue = (new MatchQueue())->setWaitingPlayer($user)->setGameLength($gameLength);
         $user->setIsInGame(true);
 
         $this->entityManager->persist($matchQueue);
