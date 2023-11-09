@@ -22,7 +22,7 @@ export const board = reactive({
                 this.state.push({
                     x: i,
                     y: j,
-                    pieceImage: foundPiece ? foundPiece.image : '',
+                    pieceImage: foundPiece ? `images/${foundPiece.type.toLowerCase()}_${foundPiece.team}.png` : '',
                 });
             }
         }
