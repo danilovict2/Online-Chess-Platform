@@ -47,7 +47,6 @@ function addPiece(pieceType, team, x, y) {
     board.pieces.set(
         `${x}-${y}`,
         { 
-            image: `images/${pieceType.toLowerCase()}_${team}.png`, 
             x: x, y: y,
             type: pieceType, team: team, 
             hasMoved: false, enPassant: false 
