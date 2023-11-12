@@ -115,5 +115,6 @@ function canPromote() {
     height: 90px;
     border: 5px solid rgba(0, 0, 0, 0.4);
     border-radius: 50%;
+    margin: 5px;
 }
 </style>
