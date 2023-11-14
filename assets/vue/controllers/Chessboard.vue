@@ -22,7 +22,7 @@ import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
 import { samePosition } from '../common/helpers.js';
 import { board } from '../stores/board.js';
-import { GRID_COL_SIZE, pieces as defaultPieceLayout } from '../common/constants.js';
+import { GRID_COL_SIZE, pieces as defaultPieceLayout, BOARD_LIMITS } from '../common/constants.js';
 import PossibleMovesCalculator from '../services/PossibleMovesCalculator.js';
 import PromotionHandler from '../services/PromotionHandler.js';
 import MoveHandler from '../services/MoveHandler.js';
@@ -104,6 +104,8 @@ function dropPiece(e) {
             resetCurrentPieceDOMElementPosition();
         }
 
+        board.updateState(new MoveHandler().playMove(currentPiece, toMovetile));
+        endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
         currentPieceDOMElement.value = null;
         possibleMoves.value = [];
     }
