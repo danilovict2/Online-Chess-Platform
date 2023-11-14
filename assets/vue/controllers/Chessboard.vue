@@ -1,11 +1,15 @@
 <template>
-    <div class="black-data">{{ board.blackTimer.minutes }} : {{ board.blackTimer.seconds }}</div>
+    <div class="black-data">
+        <Clock team="b"></Clock>
+    </div>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece"
             @promotion-possible="enablePromotionModal" />
     </div>
-    <div class="white-data">{{ board.whiteTimer.minutes }} : {{ board.whiteTimer.seconds }}</div>
+    <div class="white-data">
+        <Clock team="w"></Clock>
+    </div>
     <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
     <EndGameModal v-show="endgameMessage" :message="endgameMessage" />
 </template>
@@ -13,6 +17,7 @@
 <script setup>
 import { ref, onMounted, watchEffect } from 'vue';
 import Tile from '../components/Tile.vue';
+import Clock from '../components/Clock.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
 import { samePosition } from '../common/helpers.js';
@@ -38,7 +43,6 @@ let currentPieceDOMElement = ref(null);
 let endgameMessage = ref('');
 
 board.updateState(defaultPieceLayout);
-board.blackTimer.pause();
 
 watchEffect(() => {
     if (board.whiteTimer.isExpired || board.blackTimer.isExpired) {
@@ -94,13 +98,6 @@ function dropPiece(e) {
         const toMovetile = findClosestTile(e.clientX, e.clientY);
 
         if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
-            if (board.whiteTimer.isRunning) {
-                board.whiteTimer.pause();
-                board.blackTimer.resume();
-            } else {
-                board.whiteTimer.resume();
-                board.blackTimer.pause();
-            }
             board.updateState(new MoveHandler().playMove(currentPiece, toMovetile));
             endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
         } else {
