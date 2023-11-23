@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Game;
 use App\MatchmakingService;
 use App\Repository\GameRepository;
+use Pusher\Pusher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,11 +48,31 @@ class GameController extends AbstractController
         $normalizer = new ObjectNormalizer(defaultContext: [AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => fn () => null]);
         $serializer = new Serializer([$normalizer]);
         $game = $serializer->normalize($gameRepository->findOneBySlug($slug));
+        $user = $serializer->normalize($this->getUser());
 
         if (!$game) {
             throw $this->createNotFoundException();
         }
 
-        return $this->render('game/index.html.twig', ['game' => $game]);
+        return $this->render('game/index.html.twig', ['game' => $game, 'user' => $user]);
+    }
+
+    #[Route('/{id}/move-played', name: 'move_played', methods: ['POST'])]
+    public function movePlayed(int $id, Pusher $pusher, Request $request): Response
+    {
+        $pusher->trigger('game', 'move_played', ['game_id' => $id, 'piece' => $request->request->get('piece'), 'toMoveTile' => $request->request->get('toMoveTile')]);
+        return new Response();
+    }
+
+    #[Route('/{id}/promotion-move-played', name: 'promotion_move_played', methods: ['POST'])]
+    public function promotionMovePlayed(int $id, Pusher $pusher, Request $request): Response
+    {
+        $pusher->trigger('game', 'promotion_move_played', [
+            'game_id' => $id, 
+            'promotedPawn' => $request->request->get('promotedPawn'), 
+            'pieceType' => $request->request->get('pieceType'),
+            'promotionTile' => $request->request->get('promotionTile')
+        ]);
+        return new Response();
     }
 }

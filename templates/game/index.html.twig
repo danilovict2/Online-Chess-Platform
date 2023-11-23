@@ -4,6 +4,6 @@
 
 {% block body %}
     <div class="game">
-        <div {{ vue_component('Chessboard', { game: game }) }}></div>
+        <div {{ vue_component('Chessboard', { game: game, user: user }) }}></div>
     </div>
 {% endblock %}

@@ -7,7 +7,7 @@ export default class MoveHandler {
         const enPassantCaptureDirection = (pieceToMove.team === 'w') ? 1 : -1;
         const isEnPassant = createRefereeForType(pieceToMove.type).isEnPassant(startTile, toMovetile, pieceToMove.team);
         const piecesAfterMove = new Map();
-
+        
         for (let piece of board.pieces.values()) {
             piece.enPassant = false;
 
@@ -20,7 +20,7 @@ export default class MoveHandler {
                 continue;
             }
 
-            if (piece === pieceToMove) {
+            if (samePosition(piece, pieceToMove)) {
                 this.movePieceWithEnPassantCheck(piece, toMovetile);
                 if (piece.type === 'King' && Math.abs(piece.x - startTile.x) === 2) {
                     this.castle(piece, piecesAfterMove);

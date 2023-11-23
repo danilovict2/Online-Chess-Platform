@@ -20,14 +20,10 @@ const { x, y, pieceImage, isPossibleMove } = defineProps({
     pieceImage: String,
     isPossibleMove: Boolean
 });
-const emit = defineEmits(['grabPiece', 'promotionPossible']);
+const emit = defineEmits(['grabPiece']);
 const containsPiece = pieceImage !== '';
 const rank = (x === 1) ? ranks[y - 1] : null;
 const file = (y === 1) ? files[x - 1] : null;
-
-if (canPromote()) {
-    emit('promotionPossible', x, y);
-}
 
 function grabPiece(e) {
     if (containsPiece) {
@@ -35,15 +31,6 @@ function grabPiece(e) {
         pieceDOMElement.style.position = 'absolute';
         emit('grabPiece', pieceDOMElement, e);
     }
-}
-
-function canPromote() {
-    if (containsPiece) {
-        const pieceTeam = pieceImage.includes('_w') ? 'w' : 'b';
-        const promotionRow = (pieceTeam === 'w') ? BLACK_PIECES_START_Y : WHITE_PIECES_START_Y;
-        return pieceImage.includes('pawn') && y === promotionRow;
-    }
-    return false;
 }
 </script>
 

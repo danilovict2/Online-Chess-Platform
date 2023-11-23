@@ -1,44 +1,69 @@
 <template>
-    <div class="black-data">
+    <div class="user-data">
+        <span>
+            <img src="/images/default-user-image.svg" class="d-inline-block align-text-top">
+            {{ game.players[1].username }} (800)
+        </span>
         <Clock team="b"></Clock>
     </div>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
-            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece"
-            @promotion-possible="enablePromotionModal" />
+            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece" />
     </div>
-    <div class="white-data">
+    <div class="user-data">
+        <span>
+            <img src="/images/default-user-image.svg" class="d-inline-block align-text-top">
+            {{ game.players[0].username }} (800)
+        </span>
         <Clock team="w"></Clock>
     </div>
-    <PromotionModal v-show="promotionPawn" :team="promotionPawn?.team" @promote-to="promoteTo" />
+    <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam" @promote-to="promoteTo" />
     <EndGameModal v-show="endgameMessage" :message="endgameMessage" />
 </template>
 
 <script setup>
 import { ref, onMounted, watchEffect } from 'vue';
+import { pusher } from '../../pusher.js';
+import axios from 'axios';
 import Tile from '../components/Tile.vue';
 import Clock from '../components/Clock.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
 import { samePosition } from '../common/helpers.js';
 import { board } from '../stores/board.js';
-import { GRID_COL_SIZE, pieces as defaultPieceLayout, BOARD_LIMITS } from '../common/constants.js';
+import { BLACK_PIECES_START_Y, GRID_COL_SIZE, WHITE_PIECES_START_Y, pieces as defaultPieceLayout } from '../common/constants.js';
 import PossibleMovesCalculator from '../services/PossibleMovesCalculator.js';
 import PromotionHandler from '../services/PromotionHandler.js';
 import MoveHandler from '../services/MoveHandler.js';
 import EndgameHandler from '../services/EndgameHandler.js';
 
-const { game } = defineProps({
-    game: Object
+const { game, user } = defineProps({
+    game: Object,
+    user: Object
 });
 board.setClocks(game.length);
+const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
+
+const gameChannel = pusher.subscribe('game');
+
+gameChannel.bind('move_played', data => {
+    if (data.game_id === game.id) {
+        playMove(JSON.parse(data.piece), JSON.parse(data.toMoveTile));
+    }
+});
+
+gameChannel.bind('promotion_move_played', data => {
+    if (data.game_id === game.id) {
+        promote(JSON.parse(data.promotedPawn), data.pieceType, JSON.parse(data.promotionTile));
+    }
+});
 
 const chessboard = ref(null);
-
 let boardLimits = null;
 let currentPiece = null;
 let possibleMoves = ref([]);
 let promotionPawn = ref(null);
+let promotionTile = null;
 let currentPieceDOMElement = ref(null);
 let endgameMessage = ref('');
 
@@ -48,7 +73,7 @@ watchEffect(() => {
     if (board.whiteTimer.isExpired || board.blackTimer.isExpired) {
         endgameMessage.value = board.whiteTimer.isExpired ? 'Black won on time' : 'White won on time';
     }
-    
+
     if (endgameMessage.value) {
         board.whiteTimer.pause();
         board.blackTimer.pause();
@@ -70,7 +95,10 @@ function grabPiece(pieceDOMElement, e) {
 
     const currentPieceTile = findClosestTile(e.clientX, e.clientY);
     currentPiece = board.pieces.get(`${currentPieceTile.x}-${currentPieceTile.y}`);
-    if (!((currentPiece.team === 'w' && board.turn % 2 === 0) || (currentPiece.team === 'b' && board.turn % 2 !== 0))) {
+    if (
+        (currentPiece.team === 'w' && board.turn % 2 !== 0 && currentPlayerTeam === 'w') ||
+        (currentPiece.team === 'b' && board.turn % 2 === 0 && currentPlayerTeam === 'b')
+    ) {
         possibleMoves.value = new PossibleMovesCalculator().calculatePossibleMovesForPiece(currentPiece);
     }
 }
@@ -95,20 +123,41 @@ function moveCurrentPieceDOMElement(e) {
 
 function dropPiece(e) {
     if (currentPieceDOMElement.value) {
-        const toMovetile = findClosestTile(e.clientX, e.clientY);
+        const toMoveTile = findClosestTile(e.clientX, e.clientY);
 
-        if (possibleMoves.value.some(move => samePosition(move, toMovetile))) {
-            board.updateState(new MoveHandler().playMove(currentPiece, toMovetile));
-            endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
+        if (possibleMoves.value.some(move => samePosition(move, toMoveTile))) {
+            if (isPromotionMove(currentPiece, toMoveTile)) {
+                promotionTile = toMoveTile;
+                enablePromotionModal(currentPiece);
+                resetCurrentPieceDOMElementPosition();
+            } else {
+                let moveData = new FormData();
+                moveData.append('piece', JSON.stringify(currentPiece));
+                moveData.append('toMoveTile', JSON.stringify(toMoveTile));
+                axios.post(`/game/${game.id}/move-played`, moveData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    }
+                });
+            }
         } else {
             resetCurrentPieceDOMElementPosition();
         }
 
-        board.updateState(new MoveHandler().playMove(currentPiece, toMovetile));
-        endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(currentPiece.team);
         currentPieceDOMElement.value = null;
         possibleMoves.value = [];
     }
+}
+
+function isPromotionMove(piece, toMoveTile) {
+    if (piece.type !== 'Pawn') return false;
+    const promotionRow = (piece.team === 'w') ? BLACK_PIECES_START_Y : WHITE_PIECES_START_Y;
+    return toMoveTile.y === promotionRow;
+}
+
+function playMove(pieceToMove, toMoveTile) {
+    board.updateState(new MoveHandler().playMove(pieceToMove, toMoveTile));
+    endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(pieceToMove.team);
 }
 
 function resetCurrentPieceDOMElementPosition() {
@@ -117,13 +166,26 @@ function resetCurrentPieceDOMElementPosition() {
     currentPieceDOMElement.value.style.removeProperty('left');
 }
 
-function enablePromotionModal(x, y) {
-    promotionPawn.value = board.pieces.get(`${x}-${y}`);
+function enablePromotionModal(promotedPawn) {
+    promotionPawn.value = promotedPawn;
 }
 
 function promoteTo(pieceType) {
-    board.updateState(new PromotionHandler().promote(promotionPawn.value, pieceType));
+    let promotionData = new FormData();
+    promotionData.append('promotedPawn', JSON.stringify(promotionPawn.value));
+    promotionData.append('pieceType', pieceType);
+    promotionData.append('promotionTile', JSON.stringify(promotionTile));
+    axios.post(`/game/${game.id}/promotion-move-played`, promotionData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        }
+    });
     promotionPawn.value = null;
+}
+
+function promote(promotedPawn, pieceType, promotionTile) {
+    board.updateState(new PromotionHandler().promote(promotedPawn, pieceType));
+    playMove(promotedPawn, promotionTile);
 }
 </script>
 
@@ -136,10 +198,20 @@ function promoteTo(pieceType) {
     height: 800px;
 }
 
-.black-data,
-.white-data {
+.user-data {
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
+    justify-content: space-between;
     font-size: 2rem;
+}
+
+.user-data > span {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.user-data > span > img {
+    height: 40px;
+    width: 40px;
 }
 </style>
