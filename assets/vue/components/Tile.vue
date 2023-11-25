@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { BLACK_PIECES_START_Y, WHITE_PIECES_START_Y, files, ranks } from '../common/constants.js';
+import { files, ranks } from '../common/constants.js';
 const { x, y, pieceImage, isPossibleMove } = defineProps({
     x: Number,
     y: Number,

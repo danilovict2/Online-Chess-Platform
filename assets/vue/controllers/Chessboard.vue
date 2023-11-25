@@ -1,22 +1,10 @@
 <template>
-    <div class="user-data">
-        <span>
-            <img src="/images/default-user-image.svg" class="d-inline-block align-text-top">
-            {{ game.players[1].username }} (800)
-        </span>
-        <Clock team="b"></Clock>
-    </div>
+    <UserData :player="game.players[1]" player-team="b"></UserData>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece" />
     </div>
-    <div class="user-data">
-        <span>
-            <img src="/images/default-user-image.svg" class="d-inline-block align-text-top">
-            {{ game.players[0].username }} (800)
-        </span>
-        <Clock team="w"></Clock>
-    </div>
+    <UserData :player="game.players[0]" player-team="w"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam" @promote-to="promoteTo" />
     <EndGameModal v-show="endgameMessage" :message="endgameMessage" />
 </template>
@@ -26,7 +14,6 @@ import { ref, onMounted, watchEffect } from 'vue';
 import { pusher } from '../../pusher.js';
 import axios from 'axios';
 import Tile from '../components/Tile.vue';
-import Clock from '../components/Clock.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
 import { samePosition } from '../common/helpers.js';
@@ -36,6 +23,7 @@ import PossibleMovesCalculator from '../services/PossibleMovesCalculator.js';
 import PromotionHandler from '../services/PromotionHandler.js';
 import MoveHandler from '../services/MoveHandler.js';
 import EndgameHandler from '../services/EndgameHandler.js';
+import UserData from '../components/UserData.vue';
 
 const { game, user } = defineProps({
     game: Object,
@@ -196,22 +184,5 @@ function promote(promotedPawn, pieceType, promotionTile) {
     grid-template-rows: repeat(8, 100px);
     width: 800px;
     height: 800px;
-}
-
-.user-data {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    font-size: 2rem;
-}
-
-.user-data > span {
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.user-data > span > img {
-    height: 40px;
-    width: 40px;
 }
 </style>
