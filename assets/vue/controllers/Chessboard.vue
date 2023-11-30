@@ -55,7 +55,11 @@ let promotionTile = null;
 let currentPieceDOMElement = ref(null);
 let endgameMessage = ref('');
 
-board.updateState(defaultPieceLayout);
+if (game.pieces) {
+    board.loadState(game);
+} else {
+    board.updateState(defaultPieceLayout);
+}
 
 watchEffect(() => {
     if (board.whiteTimer.isExpired || board.blackTimer.isExpired) {
@@ -67,6 +71,11 @@ watchEffect(() => {
         board.blackTimer.pause();
     }
 });
+
+setInterval(() => {
+    board.saveTimers(game.id);
+}, 1000);
+
 
 onMounted(() => {
     boardLimits = {
@@ -145,6 +154,7 @@ function isPromotionMove(piece, toMoveTile) {
 
 function playMove(pieceToMove, toMoveTile) {
     board.updateState(new MoveHandler().playMove(pieceToMove, toMoveTile));
+    board.saveState(game.id);
     endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(pieceToMove.team);
 }
 

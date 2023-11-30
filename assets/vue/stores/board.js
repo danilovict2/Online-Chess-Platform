@@ -1,6 +1,7 @@
 import { reactive } from "vue";
 import { BOARD_DIMENSION } from "../common/constants.js";
 import { useTimer } from "vue-timer-hook";
+import axios from "axios";
 
 export const board = reactive({
     state: [],
@@ -42,14 +43,23 @@ export const board = reactive({
 
     addPieceStateToHistory() {
         const currentPieceState = this.getCurrentPieceState();
-        this.pieceStateHistory.push(JSON.stringify(currentPieceState));
+        this.pieceStateHistory.push(currentPieceState);
     },
 
     getCurrentPieceState() {
-        const currentPieceState = [];
-        this.pieces.forEach(piece => {
-            currentPieceState.push(`${piece.x}-${piece.y}-${piece.type}`);
-        });
+        let currentPieceState = '';
+        for (let j = BOARD_DIMENSION; j >= 1; --j) {
+            for (let i = 1; i <= BOARD_DIMENSION; ++i) {
+                const foundPiece = this.pieces.get(`${i}-${j}`);
+
+                if (foundPiece) {
+                    const pieceTypeSymbol = foundPiece.type === 'Knight' ? 'n' : foundPiece.type[0].toLowerCase();
+                    currentPieceState += foundPiece.team === 'w' ? pieceTypeSymbol.toUpperCase() : pieceTypeSymbol;
+                } else {
+                    currentPieceState += '0';
+                }
+            }
+        }
 
         return currentPieceState;
     },
@@ -57,5 +67,46 @@ export const board = reactive({
     setClocks(gameLength) {
         this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + gameLength * 60));
         this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + gameLength * 60));
+    },
+
+    saveState(gameId) {
+        const state = new FormData();
+        state.append('pieces', JSON.stringify(Array.from(this.pieces)));
+        state.append('turn', this.turn);
+        state.append('turnsSinceLastCapture', this.turnsSinceLastCapture);
+        state.append('pieceStateHistory', JSON.stringify(this.pieceStateHistory));
+        this.saveTimers(gameId);
+        
+        axios.post(`/game/${gameId}/save-state`, state, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            }
+        });
+    },
+
+    saveTimers(gameId) {
+        const timerState = new FormData();
+        timerState.append('blackTimer', JSON.stringify(this.blackTimer));
+        timerState.append('whiteTimer', JSON.stringify(this.whiteTimer));
+
+        axios.post(`/game/${gameId}/save-timers`, timerState, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            }
+        });
+    },
+
+    loadState(game) {
+        this.pieces = new Map(JSON.parse(game.pieces));
+        this.turn = game.turn;
+        this.turnsSinceLastCapture = game.turnsSinceLastCapture;
+        this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
+        this.loadTimers(JSON.parse(game.blackTimer), JSON.parse(game.whiteTimer));
+        this.updateState(this.pieces);
+    },
+
+    loadTimers(blackTimerData, whiteTimerData) {
+        this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whiteTimerData.minutes * 60 + whiteTimerData.seconds));
+        this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blackTimerData.minutes * 60 + blackTimerData.seconds));
     }
 });

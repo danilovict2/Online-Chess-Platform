@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\GameRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -28,6 +29,24 @@ class Game
     #[Assert\Count(min: 2, max: 2)]
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: User::class)]
     private Collection $players;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $pieces = null;
+
+    #[ORM\Column(length: 5, nullable: true)]
+    private ?string $turn = null;
+
+    #[ORM\Column(length: 5, nullable: true)]
+    private ?string $turnsSinceLastCapture = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $pieceStateHistory = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $blackTimer = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $whiteTimer = null;
 
     public function __construct()
     {
@@ -95,6 +114,78 @@ class Game
                 $player->setGame(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPieces(): ?string
+    {
+        return $this->pieces;
+    }
+
+    public function setPieces(string $pieces): static
+    {
+        $this->pieces = $pieces;
+
+        return $this;
+    }
+
+    public function getTurn(): ?string
+    {
+        return $this->turn;
+    }
+
+    public function setTurn(string $turn): static
+    {
+        $this->turn = $turn;
+
+        return $this;
+    }
+
+    public function getTurnsSinceLastCapture(): ?string
+    {
+        return $this->turnsSinceLastCapture;
+    }
+
+    public function setTurnsSinceLastCapture(string $turnsSinceLastCapture): static
+    {
+        $this->turnsSinceLastCapture = $turnsSinceLastCapture;
+
+        return $this;
+    }
+
+    public function getPieceStateHistory(): ?string
+    {
+        return $this->pieceStateHistory;
+    }
+
+    public function setPieceStateHistory(string $pieceStateHistory): static
+    {
+        $this->pieceStateHistory = $pieceStateHistory;
+
+        return $this;
+    }
+
+    public function getBlackTimer(): ?string
+    {
+        return $this->blackTimer;
+    }
+
+    public function setBlackTimer(string $blackTimer): static
+    {
+        $this->blackTimer = $blackTimer;
+
+        return $this;
+    }
+
+    public function getWhiteTimer(): ?string
+    {
+        return $this->whiteTimer;
+    }
+
+    public function setWhiteTimer(string $whiteTimer): static
+    {
+        $this->whiteTimer = $whiteTimer;
 
         return $this;
     }

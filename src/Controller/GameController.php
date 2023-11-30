@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Game;
 use App\MatchmakingService;
 use App\Repository\GameRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Pusher\Pusher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -73,6 +75,33 @@ class GameController extends AbstractController
             'pieceType' => $request->request->get('pieceType'),
             'promotionTile' => $request->request->get('promotionTile')
         ]);
+        return new Response();
+    }
+
+    #[Route('/{id}/save-state', name:'game_save_state', methods: ['POST'])]
+    public function saveState(Request $request, Game $game, EntityManagerInterface $entityManager): Response
+    {
+        $game->setPieces($request->request->get('pieces'))
+            ->setTurn($request->request->get('turn'))
+            ->setTurnsSinceLastCapture($request->request->get('turnsSinceLastCapture'))
+            ->setPieceStateHistory($request->request->get('pieceStateHistory'))
+        ;
+
+        $entityManager->persist($game);
+        $entityManager->flush();
+        return new Response();
+    }
+
+    #[Route('/{id}/save-timers', name:'game_save_timers', methods: ['POST'])]
+    public function saveTimers(Request $request, Game $game, EntityManagerInterface $entityManager): Response
+    {
+        $game
+            ->setWhiteTimer($request->request->get('whiteTimer'))
+            ->setBlackTimer($request->request->get('blackTimer'))
+        ;
+
+        $entityManager->persist($game);
+        $entityManager->flush();
         return new Response();
     }
 }

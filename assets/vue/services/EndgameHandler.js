@@ -38,7 +38,7 @@ export default class EndgameHandler {
     }
 
     isThreefoldRepetition() {
-        const currentPieceState = JSON.stringify(board.getCurrentPieceState());
+        const currentPieceState = board.getCurrentPieceState();
         return board.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
     }
     
