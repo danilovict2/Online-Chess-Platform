@@ -38,12 +38,11 @@ class MatchmakingService
     private function joinGame(User $user, int $gameLength): RedirectResponse
     {
         $queuedMatches = $this->matchQueueRepository->findBy(['gameLength' => $gameLength]);
-        if (empty($queuedMatches)) {
+        if (empty(array_filter($queuedMatches, fn ($matchQueue) => $matchQueue->getWaitingPlayer() !== $user))) {
             throw new GameNotFoundException();
         }
 
         $game = (new Game())->setLength($gameLength)->addPlayer($queuedMatches[0]->getWaitingPlayer())->addPlayer($user);
-        $user->setIsInGame(true);
 
         $this->entityManager->persist($game);
         $this->entityManager->persist($user);
@@ -58,12 +57,13 @@ class MatchmakingService
 
     private function addUserToMatchmakingQueue(User $user, int $gameLength): RedirectResponse
     {
-        $matchQueue = (new MatchQueue())->setWaitingPlayer($user)->setGameLength($gameLength);
-        $user->setIsInGame(true);
+        if (empty($this->matchQueueRepository->findBy(['waitingPlayer' => $user]))) {
+            $matchQueue = (new MatchQueue())->setWaitingPlayer($user)->setGameLength($gameLength);
 
-        $this->entityManager->persist($matchQueue);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+            $this->entityManager->persist($matchQueue);
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+        }
 
         return new RedirectResponse($this->urlGenerator->generate('waiting_room'));
     }
