@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { BOARD_DIMENSION } from "../common/constants.js";
+import { BOARD_DIMENSION, pieces } from "../common/constants.js";
 import { useTimer } from "vue-timer-hook";
 import axios from "axios";
 
@@ -97,6 +97,11 @@ export const board = reactive({
     },
 
     loadState(game) {
+        if (!game.pieces) {
+            this.updateState(pieces);
+            return;
+        }
+
         this.pieces = new Map(JSON.parse(game.pieces));
         this.turn = game.turn;
         this.turnsSinceLastCapture = game.turnsSinceLastCapture;

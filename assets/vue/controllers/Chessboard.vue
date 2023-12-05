@@ -10,56 +10,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect } from 'vue';
-import { pusher } from '../../pusher.js';
-import axios from 'axios';
+import { ref, watchEffect, onMounted } from 'vue';
+import { sendPostRequest } from '../services/axios.js';
 import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
 import { samePosition } from '../common/helpers.js';
 import { board } from '../stores/board.js';
-import { BLACK_PIECES_START_Y, GRID_COL_SIZE, WHITE_PIECES_START_Y, pieces as defaultPieceLayout } from '../common/constants.js';
+import { BLACK_PIECES_START_Y, GRID_COL_SIZE, WHITE_PIECES_START_Y } from '../common/constants.js';
 import PossibleMovesCalculator from '../services/PossibleMovesCalculator.js';
 import PromotionHandler from '../services/PromotionHandler.js';
 import MoveHandler from '../services/MoveHandler.js';
 import EndgameHandler from '../services/EndgameHandler.js';
 import UserData from '../components/UserData.vue';
+import initWebSocket from '../services/websocket';
 
 const { game, user } = defineProps({
     game: Object,
     user: Object
 });
+
 board.setClocks(game.length);
+board.loadState(game);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 
-const gameChannel = pusher.subscribe('game');
-
-gameChannel.bind('move_played', data => {
-    if (data.game_id === game.id) {
-        playMove(JSON.parse(data.piece), JSON.parse(data.toMoveTile));
-    }
-});
-
-gameChannel.bind('promotion_move_played', data => {
-    if (data.game_id === game.id) {
-        promote(JSON.parse(data.promotedPawn), data.pieceType, JSON.parse(data.promotionTile));
-    }
-});
+initWebSocket(game.id, playMove, promote);
 
 const chessboard = ref(null);
-let boardLimits = null;
 let currentPiece = null;
+let boardLimits = {};
 let possibleMoves = ref([]);
 let promotionPawn = ref(null);
 let promotionTile = null;
 let currentPieceDOMElement = ref(null);
 let endgameMessage = ref('');
 
-if (game.pieces) {
-    board.loadState(game);
-} else {
-    board.updateState(defaultPieceLayout);
-}
 
 watchEffect(() => {
     if (board.whiteTimer.isExpired || board.blackTimer.isExpired) {
@@ -76,7 +61,6 @@ setInterval(() => {
     board.saveTimers(game.id);
 }, 1000);
 
-
 onMounted(() => {
     boardLimits = {
         minX: chessboard.value.offsetLeft - 25,
@@ -86,27 +70,25 @@ onMounted(() => {
     };
 });
 
+
 function grabPiece(pieceDOMElement, e) {
     currentPieceDOMElement.value = pieceDOMElement;
     moveCurrentPieceDOMElement(e);
 
     const currentPieceTile = findClosestTile(e.clientX, e.clientY);
     currentPiece = board.pieces.get(`${currentPieceTile.x}-${currentPieceTile.y}`);
-    if (
-        (currentPiece.team === 'w' && board.turn % 2 !== 0 && currentPlayerTeam === 'w') ||
-        (currentPiece.team === 'b' && board.turn % 2 === 0 && currentPlayerTeam === 'b')
-    ) {
+    calculatePossibleMoves();
+}
+
+function calculatePossibleMoves() {
+    if (currentPiece.team === currentPlayerTeam && isPlayersTurn(currentPlayerTeam)) {
         possibleMoves.value = new PossibleMovesCalculator().calculatePossibleMovesForPiece(currentPiece);
     }
 }
 
-function findClosestTile(clientX, clientY) {
-    // +1 added to start indexing from 1
-    const x = Math.floor((clientX - (boardLimits.minX + 25)) / GRID_COL_SIZE) + 1;
-    // -825 inverts y
-    const y = Math.abs(Math.ceil((clientY - boardLimits.minY - 825) / GRID_COL_SIZE)) + 1;
-
-    return { x, y };
+function isPlayersTurn(playerTeam) {
+    return (playerTeam === 'w' && board.turn % 2 !== 0) ||
+        (playerTeam === 'b' && board.turn % 2 === 0);
 }
 
 function moveCurrentPieceDOMElement(e) {
@@ -131,11 +113,7 @@ function dropPiece(e) {
                 let moveData = new FormData();
                 moveData.append('piece', JSON.stringify(currentPiece));
                 moveData.append('toMoveTile', JSON.stringify(toMoveTile));
-                axios.post(`/game/${game.id}/move-played`, moveData, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    }
-                });
+                sendPostRequest(`/game/${game.id}/move-played`, moveData);
             }
         } else {
             resetCurrentPieceDOMElementPosition();
@@ -144,6 +122,15 @@ function dropPiece(e) {
         currentPieceDOMElement.value = null;
         possibleMoves.value = [];
     }
+}
+
+function findClosestTile(clientX, clientY) {
+    // +1 added to start indexing from 1
+    const x = Math.floor((clientX - (boardLimits.minX + 25)) / GRID_COL_SIZE) + 1;
+    // -825 inverts y
+    const y = Math.abs(Math.ceil((clientY - boardLimits.minY - 825) / GRID_COL_SIZE)) + 1;
+
+    return { x, y };
 }
 
 function isPromotionMove(piece, toMoveTile) {
@@ -173,11 +160,7 @@ function promoteTo(pieceType) {
     promotionData.append('promotedPawn', JSON.stringify(promotionPawn.value));
     promotionData.append('pieceType', pieceType);
     promotionData.append('promotionTile', JSON.stringify(promotionTile));
-    axios.post(`/game/${game.id}/promotion-move-played`, promotionData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        }
-    });
+    sendPostRequest(`/game/${game.id}/promotion-move-played`, promotionData);
     promotionPawn.value = null;
 }
 
