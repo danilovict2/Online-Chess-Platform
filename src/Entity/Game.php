@@ -53,6 +53,14 @@ class Game
         $this->players = new ArrayCollection();
     }
 
+    #[ORM\PreRemove]
+    public function removePlayers(): void
+    {
+        foreach ($this->getPlayers() as $player) {
+            $this->removePlayer($player);
+        }
+    }
+
     public function getId(): ?int
     {
         return $this->id;

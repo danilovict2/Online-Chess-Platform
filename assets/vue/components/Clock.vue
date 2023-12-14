@@ -10,12 +10,12 @@ import { watchEffect } from 'vue';
 import { board } from '../stores/board';
 
 const { team } = defineProps({
-    team: String
+    team: String,
 });
 const clock = team === 'w' ? board.whiteTimer : board.blackTimer;
 
 watchEffect(() => {
-    if ((board.turn % 2 !== 0 && team === 'w') || (board.turn % 2 === 0 && team === 'b')) {
+    if ((board.turn % 2 !== 0 && team === 'w') || (board.turn % 2 === 0 && team === 'b') && !board.isGameOver) {
         clock.resume();
     } else {
         clock.pause();

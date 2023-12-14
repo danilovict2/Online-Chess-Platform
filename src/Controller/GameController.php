@@ -18,6 +18,10 @@ use Symfony\Component\Serializer\Serializer;
 #[Route('/game')]
 class GameController extends AbstractController
 {
+    public  function __construct(private EntityManagerInterface $entityManager)
+    {
+    }
+
     #[Route('/enter-matchmaking', name: 'enter_game_matchmaking', methods: ['POST'])]
     public function enterMathcmaking(Request $request, MatchmakingService $matchmaking): Response
     {
@@ -79,7 +83,7 @@ class GameController extends AbstractController
     }
 
     #[Route('/{id}/save-state', name:'game_save_state', methods: ['POST'])]
-    public function saveState(Request $request, Game $game, EntityManagerInterface $entityManager): Response
+    public function saveState(Request $request, Game $game): Response
     {
         $game->setPieces($request->request->get('pieces'))
             ->setTurn($request->request->get('turn'))
@@ -87,21 +91,29 @@ class GameController extends AbstractController
             ->setPieceStateHistory($request->request->get('pieceStateHistory'))
         ;
 
-        $entityManager->persist($game);
-        $entityManager->flush();
+        $this->entityManager->persist($game);
+        $this->entityManager->flush();
         return new Response();
     }
 
     #[Route('/{id}/save-timers', name:'game_save_timers', methods: ['POST'])]
-    public function saveTimers(Request $request, Game $game, EntityManagerInterface $entityManager): Response
+    public function saveTimers(Request $request, Game $game): Response
     {
         $game
             ->setWhiteTimer($request->request->get('whiteTimer'))
             ->setBlackTimer($request->request->get('blackTimer'))
         ;
 
-        $entityManager->persist($game);
-        $entityManager->flush();
+        $this->entityManager->persist($game);
+        $this->entityManager->flush();
+        return new Response();
+    }
+
+    #[Route('/{id}/delete', name: 'delete_game', methods: ['POST'])]
+    public function deleteGame(Game $game): Response
+    {
+        $this->entityManager->remove($game);
+        $this->entityManager->flush();
         return new Response();
     }
 }

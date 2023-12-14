@@ -52,13 +52,15 @@ watchEffect(() => {
     }
 
     if (endgameMessage.value) {
-        board.whiteTimer.pause();
-        board.blackTimer.pause();
+        board.isGameOver = true;
+        sendPostRequest(`/game/${game.id}/delete`, null);
     }
 });
 
 setInterval(() => {
-    board.saveTimers(game.id);
+    if (!endgameMessage.value) {
+        board.saveTimers(game.id);
+    }
 }, 1000);
 
 onMounted(() => {

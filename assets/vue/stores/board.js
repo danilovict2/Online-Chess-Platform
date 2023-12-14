@@ -11,6 +11,7 @@ export const board = reactive({
     pieceStateHistory: [],
     blackTimer: null,
     whiteTimer: null,
+    isGameOver: false,
 
     updateState(pieces) {
         this.state = [];
@@ -113,5 +114,5 @@ export const board = reactive({
     loadTimers(blackTimerData, whiteTimerData) {
         this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whiteTimerData.minutes * 60 + whiteTimerData.seconds));
         this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blackTimerData.minutes * 60 + blackTimerData.seconds));
-    }
+    },
 });
