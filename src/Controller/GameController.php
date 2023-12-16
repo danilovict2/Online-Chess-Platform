@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Game;
 use App\MatchmakingService;
 use App\Repository\GameRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Pusher\Pusher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -46,6 +47,19 @@ class GameController extends AbstractController
         }
 
         return $this->render('game/waiting_room.html.twig');
+    }
+
+    #[Route('/accept-rematch', name: 'game_accept_rematch', methods: ['POST'])]
+    public function acceptRematch(Request $request, MatchmakingService $matchmaking, UserRepository $userRepository, Pusher $pusher): Response
+    {
+        $matchmaking->enter($this->getUser(), $request->request->getInt('length'));
+        $matchmaking->enter($userRepository->find($request->request->getInt('opponent_id')), $request->request->getInt('length'));
+        
+        $pusher->trigger('game', 'redirect_to_new_game', [
+            'url' => $this->generateUrl('game', ['slug' => $this->getUser()->getGame()->getSlug()])
+        ]);
+
+        return new Response();
     }
 
     #[Route('/{slug}', name: 'game')]
@@ -114,6 +128,18 @@ class GameController extends AbstractController
     {
         $this->entityManager->remove($game);
         $this->entityManager->flush();
+        return new Response();
+    }
+
+    #[Route('/{id}/play-again-request/{opponentID}', name: 'play_again_request', methods: ['POST'])]
+    public function playAgainRequest(int $id, int $opponentID, Pusher $pusher): Response
+    {
+        $pusher->trigger('game', 'play_again_request', [
+            'game_id' => $id, 
+            'opponent_id' => $opponentID, 
+            'username' => $this->getUser()->getUsername()
+        ]);
+        
         return new Response();
     }
 }

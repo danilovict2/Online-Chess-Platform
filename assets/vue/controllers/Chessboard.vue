@@ -6,7 +6,9 @@
     </div>
     <UserData :player="game.players[0]" player-team="w"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam" @promote-to="promoteTo" />
-    <EndGameModal v-show="endgameMessage" :message="endgameMessage" />
+    <EndGameModal v-show="endgameMessage && !isPlayAgainModalActive" :message="endgameMessage" @sendPlayAgainProposal="sendPlayAgainProposal" />
+    <PlayAgainModal v-show="isPlayAgainModalActive" @disable="disablePlayAgainModal" username="random" :length="game.length" @accept="playAgain">
+    </PlayAgainModal>
 </template>
 
 <script setup>
@@ -15,6 +17,7 @@ import { sendPostRequest } from '../services/axios.js';
 import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
 import EndGameModal from '../components/modals/EndGameModal.vue';
+import PlayAgainModal from '../components/modals/PlayAgainModal.vue';
 import { samePosition } from '../common/helpers.js';
 import { board } from '../stores/board.js';
 import { BLACK_PIECES_START_Y, GRID_COL_SIZE, WHITE_PIECES_START_Y } from '../common/constants.js';
@@ -34,7 +37,7 @@ board.setClocks(game.length);
 board.loadState(game);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 
-initWebSocket(game.id, playMove, promote);
+initWebSocket(game.id, user.id, playMove, promote, enablePlayAgainModal);
 
 const chessboard = ref(null);
 let currentPiece = null;
@@ -44,7 +47,7 @@ let promotionPawn = ref(null);
 let promotionTile = null;
 let currentPieceDOMElement = ref(null);
 let endgameMessage = ref('');
-
+let isPlayAgainModalActive = ref(false);
 
 watchEffect(() => {
     if (board.whiteTimer.isExpired || board.blackTimer.isExpired) {
@@ -169,6 +172,27 @@ function promoteTo(pieceType) {
 function promote(promotedPawn, pieceType, promotionTile) {
     board.updateState(new PromotionHandler().promote(promotedPawn, pieceType));
     playMove(promotedPawn, promotionTile);
+}
+
+function sendPlayAgainProposal() {
+    const opponentID = user.id === game.players[0].id ? game.players[1].id : game.players[0].id;
+    sendPostRequest(`/game/${game.id}/play-again-request/${opponentID}`, null);
+}
+
+function enablePlayAgainModal() {
+    isPlayAgainModalActive.value = true;
+}
+
+function disablePlayAgainModal() {
+    isPlayAgainModalActive.value = false;
+}
+
+function playAgain() {
+    let data = new FormData();
+    const opponentID = user.id === game.players[0].id ? game.players[1].id : game.players[0].id;
+    data.append('opponent_id', opponentID);
+    data.append('length', game.length);
+    sendPostRequest('/game/accept-rematch', data);
 }
 </script>
 

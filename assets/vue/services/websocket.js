@@ -1,6 +1,6 @@
 import { pusher } from '../../pusher.js';
 
-const initWebSocket = (gameId, playMove, promote) => {
+const initWebSocket = (gameId, userId, playMove, promote, enablePlayAgainModal) => {
     const gameChannel = pusher.subscribe('game');
 
     gameChannel.bind('move_played', data => {
@@ -13,6 +13,16 @@ const initWebSocket = (gameId, playMove, promote) => {
         if (data.game_id === gameId) {
             promote(JSON.parse(data.promotedPawn), data.pieceType, JSON.parse(data.promotionTile));
         }
+    });
+
+    gameChannel.bind('play_again_request', data => {
+        if (data.game_id === gameId && data.opponent_id === userId) {
+            enablePlayAgainModal();
+        }
+    });
+
+    gameChannel.bind('redirect_to_new_game', data => {
+        window.location = data.url;
     });
 };
 

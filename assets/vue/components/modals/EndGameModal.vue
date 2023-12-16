@@ -3,7 +3,7 @@
         <div class="body">
             <div class="endgame-modal-body">
                 <span>{{ message }}</span>
-                <button @click="resetBoard">Play again</button>
+                <button @click="emit('sendPlayAgainProposal')">Play again</button>
             </div>
         </div>
     </div>
@@ -14,9 +14,7 @@ const { message } = defineProps({
     message: String
 });
 
-function resetBoard() {
-    location.reload();
-}
+const emit = defineEmits(['sendPlayAgainProposal'])
 </script>
 
 <style scoped>
