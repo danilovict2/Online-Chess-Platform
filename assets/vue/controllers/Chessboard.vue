@@ -60,12 +60,6 @@ watchEffect(() => {
     }
 });
 
-setInterval(() => {
-    if (!endgameMessage.value) {
-        board.saveTimers(game.id);
-    }
-}, 1000);
-
 onMounted(() => {
     boardLimits = {
         minX: chessboard.value.offsetLeft - 25,

@@ -48,9 +48,13 @@ class Game
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $whiteTimer = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $start = null;
+
     public function __construct()
     {
         $this->players = new ArrayCollection();
+        $this->start = (new \DateTimeImmutable())->getTimestamp() * 1000;
     }
 
     #[ORM\PreRemove]
@@ -194,6 +198,18 @@ class Game
     public function setWhiteTimer(string $whiteTimer): static
     {
         $this->whiteTimer = $whiteTimer;
+
+        return $this;
+    }
+
+    public function getStart(): ?string
+    {
+        return $this->start;
+    }
+
+    public function setStart(string $start): static
+    {
+        $this->start = $start;
 
         return $this;
     }

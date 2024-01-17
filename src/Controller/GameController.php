@@ -103,17 +103,7 @@ class GameController extends AbstractController
             ->setTurn($request->request->get('turn'))
             ->setTurnsSinceLastCapture($request->request->get('turnsSinceLastCapture'))
             ->setPieceStateHistory($request->request->get('pieceStateHistory'))
-        ;
-
-        $this->entityManager->persist($game);
-        $this->entityManager->flush();
-        return new Response();
-    }
-
-    #[Route('/{id}/save-timers', name:'game_save_timers', methods: ['POST'])]
-    public function saveTimers(Request $request, Game $game): Response
-    {
-        $game
+            ->setStart($request->request->get('start'))
             ->setWhiteTimer($request->request->get('whiteTimer'))
             ->setBlackTimer($request->request->get('blackTimer'))
         ;
@@ -123,6 +113,7 @@ class GameController extends AbstractController
         return new Response();
     }
 
+    
     #[Route('/{id}/delete', name: 'delete_game', methods: ['POST'])]
     public function deleteGame(Game $game): Response
     {

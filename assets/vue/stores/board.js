@@ -76,21 +76,11 @@ export const board = reactive({
         state.append('turn', this.turn);
         state.append('turnsSinceLastCapture', this.turnsSinceLastCapture);
         state.append('pieceStateHistory', JSON.stringify(this.pieceStateHistory));
-        this.saveTimers(gameId);
+        state.append('start', new Date().getTime());
+        state.append('blackTimer', JSON.stringify(this.blackTimer));
+        state.append('whiteTimer', JSON.stringify(this.whiteTimer));
         
         axios.post(`/game/${gameId}/save-state`, state, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            }
-        });
-    },
-
-    saveTimers(gameId) {
-        const timerState = new FormData();
-        timerState.append('blackTimer', JSON.stringify(this.blackTimer));
-        timerState.append('whiteTimer', JSON.stringify(this.whiteTimer));
-
-        axios.post(`/game/${gameId}/save-timers`, timerState, {
             headers: {
                 "Content-Type": "multipart/form-data",
             }
@@ -100,19 +90,28 @@ export const board = reactive({
     loadState(game) {
         if (!game.pieces) {
             this.updateState(pieces);
+            this.saveState(game.id);
             return;
         }
-
         this.pieces = new Map(JSON.parse(game.pieces));
         this.turn = game.turn;
         this.turnsSinceLastCapture = game.turnsSinceLastCapture;
         this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-        this.loadTimers(JSON.parse(game.blackTimer), JSON.parse(game.whiteTimer));
+        this.test(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.start);
         this.updateState(this.pieces);
     },
 
-    loadTimers(blackTimerData, whiteTimerData) {
-        this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whiteTimerData.minutes * 60 + whiteTimerData.seconds));
-        this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blackTimerData.minutes * 60 + blackTimerData.seconds));
-    },
+    test(wd, bd, start) {
+        const msPassed = new Date().getTime() - start;
+        const sPassed = parseInt((msPassed/1000)%60);
+        const mPassed = parseInt((msPassed/(1000*60))%60);
+        
+        if (this.turn % 2 !== 0) { 
+            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (wd.minutes - mPassed) * 60 + wd.seconds - sPassed));
+            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + bd.minutes * 60 + bd.seconds));
+        } else {
+            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + wd.minutes * 60 + wd.seconds));
+            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (bd.minutes - mPassed) * 60 + bd.seconds - sPassed));
+        }
+    }
 });
