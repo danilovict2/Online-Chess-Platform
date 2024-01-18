@@ -86,7 +86,7 @@ export const board = reactive({
         if (!game.pieces) {
             this.updateState(pieces);
             const defaultClockState = {minutes: 30, seconds: 0};
-            this.loadTimers(defaultClockState, defaultClockState, new Date().getTime());
+            this.setTimers(defaultClockState, defaultClockState, new Date().getTime());
 
             this.saveState(game.id);
             return;
@@ -95,11 +95,11 @@ export const board = reactive({
         this.turn = game.turn;
         this.turnsSinceLastCapture = game.turnsSinceLastCapture;
         this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-        this.loadTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
+        this.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
         this.updateState(this.pieces);
     },
 
-    loadTimers(whiteTimerData, blackTimerData, turnStart) {
+    setTimers(whiteTimerData, blackTimerData, turnStart) {
         const msPassed = new Date().getTime() - turnStart;
         const sPassed = parseInt((msPassed/1000)%60);
         const mPassed = parseInt((msPassed/(1000*60))%60);
