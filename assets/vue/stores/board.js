@@ -97,21 +97,21 @@ export const board = reactive({
         this.turn = game.turn;
         this.turnsSinceLastCapture = game.turnsSinceLastCapture;
         this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-        this.test(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.start);
+        this.loadTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.start);
         this.updateState(this.pieces);
     },
 
-    test(wd, bd, start) {
-        const msPassed = new Date().getTime() - start;
+    loadTimers(whiteTimerData, blackTimerData, turnStart) {
+        const msPassed = new Date().getTime() - turnStart;
         const sPassed = parseInt((msPassed/1000)%60);
         const mPassed = parseInt((msPassed/(1000*60))%60);
         
-        if (this.turn % 2 !== 0) { 
-            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (wd.minutes - mPassed) * 60 + wd.seconds - sPassed));
-            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + bd.minutes * 60 + bd.seconds));
+        if (this.turn % 2 !== 0) {
+            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (whiteTimerData.minutes - mPassed) * 60 + whiteTimerData.seconds - sPassed));
+            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blackTimerData.minutes * 60 + blackTimerData.seconds));
         } else {
-            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + wd.minutes * 60 + wd.seconds));
-            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (bd.minutes - mPassed) * 60 + bd.seconds - sPassed));
+            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whiteTimerData.minutes * 60 + whiteTimerData.seconds));
+            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (blackTimerData.minutes - mPassed) * 60 + blackTimerData.seconds - sPassed));
         }
     }
 });
