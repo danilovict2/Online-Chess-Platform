@@ -31,13 +31,13 @@ export const board = reactive({
 
         if (this.turn > 1) {
             this.addPieceStateToHistory();
-        } 
+        }
     },
 
     clonePieces() {
         let clonedPieces = new Map();
         this.pieces.forEach((piece, key) => {
-            clonedPieces.set(key, {...piece});
+            clonedPieces.set(key, { ...piece });
         });
         return clonedPieces;
     },
@@ -74,7 +74,7 @@ export const board = reactive({
         state.append('turnStart', new Date().getTime());
         state.append('blackTimer', JSON.stringify(this.blackTimer));
         state.append('whiteTimer', JSON.stringify(this.whiteTimer));
-        
+
         axios.post(`/game/${gameId}/save-state`, state, {
             headers: {
                 "Content-Type": "multipart/form-data",
@@ -85,12 +85,13 @@ export const board = reactive({
     loadState(game) {
         if (!game.pieces) {
             this.updateState(pieces);
-            const defaultClockState = {minutes: 30, seconds: 0};
+            const defaultClockState = { minutes: 30, seconds: 0 };
             this.setTimers(defaultClockState, defaultClockState, new Date().getTime());
 
             this.saveState(game.id);
             return;
         }
+
         this.pieces = new Map(JSON.parse(game.pieces));
         this.turn = game.turn;
         this.turnsSinceLastCapture = game.turnsSinceLastCapture;
@@ -99,17 +100,18 @@ export const board = reactive({
         this.updateState(this.pieces);
     },
 
-    setTimers(whiteTimerData, blackTimerData, turnStart) {
+    setTimers(whTimerData, blTimerData, turnStart) {
         const msPassed = new Date().getTime() - turnStart;
-        const sPassed = parseInt((msPassed/1000)%60);
-        const mPassed = parseInt((msPassed/(1000*60))%60);
-        
-        if (this.turn % 2 !== 0) {
-            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (whiteTimerData.minutes - mPassed) * 60 + whiteTimerData.seconds - sPassed));
-            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blackTimerData.minutes * 60 + blackTimerData.seconds));
-        } else {
-            this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whiteTimerData.minutes * 60 + whiteTimerData.seconds));
-            this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + (blackTimerData.minutes - mPassed) * 60 + blackTimerData.seconds - sPassed));
-        }
+        const sPassed = parseInt((msPassed / 1000) % 60);
+        const mPassed = parseInt((msPassed / (1000 * 60)) % 60);
+
+        const whAdjustedMinutes = this.turn % 2 !== 0 ? whTimerData.minutes - mPassed : whTimerData.minutes;
+        const whAdjustedSeconds = this.turn % 2 !== 0 ? whTimerData.seconds - sPassed : whTimerData.seconds;
+        const blAdjustedMinutes = this.turn % 2 !== 0 ? blTimerData.minutes : blTimerData.minutes - mPassed;
+        const blAdjustedSeconds = this.turn % 2 !== 0 ? blTimerData.seconds : blTimerData.seconds - sPassed;
+
+        this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whAdjustedMinutes * 60 + whAdjustedSeconds));
+        this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blAdjustedMinutes * 60 + blAdjustedSeconds));
+
     }
 });
