@@ -103,7 +103,7 @@ class GameController extends AbstractController
             ->setTurn($request->request->get('turn'))
             ->setTurnsSinceLastCapture($request->request->get('turnsSinceLastCapture'))
             ->setPieceStateHistory($request->request->get('pieceStateHistory'))
-            ->setStart($request->request->get('start'))
+            ->setTurnStart($request->request->get('turnStart'))
             ->setWhiteTimer($request->request->get('whiteTimer'))
             ->setBlackTimer($request->request->get('blackTimer'))
         ;

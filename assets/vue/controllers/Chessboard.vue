@@ -33,7 +33,6 @@ const { game, user } = defineProps({
     user: Object
 });
 
-board.setClocks(game.length);
 board.loadState(game);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 

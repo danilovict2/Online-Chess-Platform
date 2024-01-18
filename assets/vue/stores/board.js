@@ -65,18 +65,13 @@ export const board = reactive({
         return currentPieceState;
     },
 
-    setClocks(gameLength) {
-        this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + gameLength * 60));
-        this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + gameLength * 60));
-    },
-
     saveState(gameId) {
         const state = new FormData();
         state.append('pieces', JSON.stringify(Array.from(this.pieces)));
         state.append('turn', this.turn);
         state.append('turnsSinceLastCapture', this.turnsSinceLastCapture);
         state.append('pieceStateHistory', JSON.stringify(this.pieceStateHistory));
-        state.append('start', new Date().getTime());
+        state.append('turnStart', new Date().getTime());
         state.append('blackTimer', JSON.stringify(this.blackTimer));
         state.append('whiteTimer', JSON.stringify(this.whiteTimer));
         
@@ -90,6 +85,9 @@ export const board = reactive({
     loadState(game) {
         if (!game.pieces) {
             this.updateState(pieces);
+            const defaultClockState = {minutes: 30, seconds: 0};
+            this.loadTimers(defaultClockState, defaultClockState, new Date().getTime());
+
             this.saveState(game.id);
             return;
         }
