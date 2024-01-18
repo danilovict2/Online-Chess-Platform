@@ -49,12 +49,12 @@ class Game
     private ?string $whiteTimer = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $start = null;
+    private ?string $turnStart = null;
 
     public function __construct()
     {
         $this->players = new ArrayCollection();
-        $this->start = (new \DateTimeImmutable())->getTimestamp() * 1000;
+        $this->turnStart = (new \DateTimeImmutable())->getTimestamp() * 1000;
     }
 
     #[ORM\PreRemove]
@@ -202,14 +202,14 @@ class Game
         return $this;
     }
 
-    public function getStart(): ?string
+    public function getTurnStart(): ?string
     {
-        return $this->start;
+        return $this->turnStart;
     }
 
-    public function setStart(string $start): static
+    public function setTurnStart(string $turnStart): static
     {
-        $this->start = $start;
+        $this->turnStart = $turnStart;
 
         return $this;
     }

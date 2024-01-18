@@ -97,7 +97,7 @@ export const board = reactive({
         this.turn = game.turn;
         this.turnsSinceLastCapture = game.turnsSinceLastCapture;
         this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-        this.loadTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.start);
+        this.loadTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
         this.updateState(this.pieces);
     },
 
