@@ -2,6 +2,7 @@ import { reactive } from "vue";
 import { BOARD_DIMENSION, pieces } from "../common/constants.js";
 import axios from "axios";
 import { timers } from "./timers.js";
+import { sendPostRequest } from "../services/axios.js";
 
 export const board = reactive({
     state: [],
@@ -73,11 +74,7 @@ export const board = reactive({
         state.append('blackTimer', JSON.stringify(timers.blackTimer));
         state.append('whiteTimer', JSON.stringify(timers.whiteTimer));
 
-        axios.post(`/game/${gameId}/save-state`, state, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            }
-        });
+        sendPostRequest(`/game/${gameId}/save-state`, state);
     },
 
     loadState(game) {
