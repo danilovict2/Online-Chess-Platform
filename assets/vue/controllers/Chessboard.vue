@@ -6,9 +6,10 @@
     </div>
     <UserData :player="game.players[0]" player-team="w"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam" @promote-to="promoteTo" />
-    <EndGameModal v-show="endgameMessage && !isPlayAgainModalActive" :message="endgameMessage" @sendPlayAgainProposal="sendPlayAgainProposal" />
-    <PlayAgainModal v-show="isPlayAgainModalActive" @disable="disablePlayAgainModal" username="random" :length="game.length" @accept="playAgain">
-    </PlayAgainModal>
+    <EndGameModal v-show="endgameMessage && !isPlayAgainModalActive" :message="endgameMessage"
+        @sendPlayAgainProposal="sendPlayAgainProposal" />
+    <PlayAgainModal v-show="isPlayAgainModalActive" @disable="disablePlayAgainModal" username="random" :length="game.length"
+        @accept="playAgain" />
 </template>
 
 <script setup>
@@ -35,19 +36,18 @@ const { game, user } = defineProps({
 });
 
 board.loadState(game);
-const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
-
 initWebSocket(game.id, user.id, playMove, promote, enablePlayAgainModal);
 
 const chessboard = ref(null);
 let currentPiece = null;
 let boardLimits = {};
-let possibleMoves = ref([]);
-let promotionPawn = ref(null);
 let promotionTile = null;
-let currentPieceDOMElement = ref(null);
-let endgameMessage = ref('');
-let isPlayAgainModalActive = ref(false);
+const possibleMoves = ref([]);
+const promotionPawn = ref(null);
+const currentPieceDOMElement = ref(null);
+const endgameMessage = ref('');
+const isPlayAgainModalActive = ref(false);
+const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 
 watchEffect(() => {
     if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
@@ -100,27 +100,26 @@ function moveCurrentPieceDOMElement(e) {
 }
 
 function dropPiece(e) {
-    if (currentPieceDOMElement.value) {
-        const toMoveTile = findClosestTile(e.clientX, e.clientY);
+    if (!currentPieceDOMElement.value) return;
 
-        if (possibleMoves.value.some(move => samePosition(move, toMoveTile))) {
-            if (isPromotionMove(currentPiece, toMoveTile)) {
-                promotionTile = toMoveTile;
-                enablePromotionModal(currentPiece);
-                resetCurrentPieceDOMElementPosition();
-            } else {
-                let moveData = new FormData();
-                moveData.append('piece', JSON.stringify(currentPiece));
-                moveData.append('toMoveTile', JSON.stringify(toMoveTile));
-                sendPostRequest(`/game/${game.id}/move-played`, moveData);
-            }
-        } else {
+    const toMoveTile = findClosestTile(e.clientX, e.clientY);
+    if (possibleMoves.value.some(move => samePosition(move, toMoveTile))) {
+        if (isPromotionMove(currentPiece, toMoveTile)) {
+            promotionTile = toMoveTile;
+            enablePromotionModal();
             resetCurrentPieceDOMElementPosition();
+        } else {
+            const moveData = new FormData();
+            moveData.append('piece', JSON.stringify(currentPiece));
+            moveData.append('toMoveTile', JSON.stringify(toMoveTile));
+            sendPostRequest(`/game/${game.id}/move-played`, moveData);
         }
-
-        currentPieceDOMElement.value = null;
-        possibleMoves.value = [];
+    } else {
+        resetCurrentPieceDOMElementPosition();
     }
+
+    currentPieceDOMElement.value = null;
+    possibleMoves.value = [];
 }
 
 function findClosestTile(clientX, clientY) {
@@ -150,12 +149,12 @@ function resetCurrentPieceDOMElementPosition() {
     currentPieceDOMElement.value.style.removeProperty('left');
 }
 
-function enablePromotionModal(promotedPawn) {
-    promotionPawn.value = promotedPawn;
+function enablePromotionModal() {
+    promotionPawn.value = currentPiece;
 }
 
 function promoteTo(pieceType) {
-    let promotionData = new FormData();
+    const promotionData = new FormData();
     promotionData.append('promotedPawn', JSON.stringify(promotionPawn.value));
     promotionData.append('pieceType', pieceType);
     promotionData.append('promotionTile', JSON.stringify(promotionTile));
