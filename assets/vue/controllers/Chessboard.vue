@@ -27,6 +27,7 @@ import MoveHandler from '../services/MoveHandler.js';
 import EndgameHandler from '../services/EndgameHandler.js';
 import UserData from '../components/UserData.vue';
 import initWebSocket from '../services/websocket';
+import { timers } from '../stores/timers';
 
 const { game, user } = defineProps({
     game: Object,
@@ -49,8 +50,8 @@ let endgameMessage = ref('');
 let isPlayAgainModalActive = ref(false);
 
 watchEffect(() => {
-    if (board.whiteTimer.isExpired || board.blackTimer.isExpired) {
-        endgameMessage.value = board.whiteTimer.isExpired ? 'Black won on time' : 'White won on time';
+    if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
+        endgameMessage.value = timers.whiteTimer.isExpired ? 'Black won on time' : 'White won on time';
     }
 
     if (endgameMessage.value) {

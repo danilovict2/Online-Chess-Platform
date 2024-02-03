@@ -1,7 +1,7 @@
 import { reactive } from "vue";
 import { BOARD_DIMENSION, pieces } from "../common/constants.js";
-import { useTimer } from "vue-timer-hook";
 import axios from "axios";
+import { timers } from "./timers.js";
 
 export const board = reactive({
     state: [],
@@ -9,8 +9,6 @@ export const board = reactive({
     turn: 1,
     turnsSinceLastCapture: 0,
     pieceStateHistory: [],
-    blackTimer: null,
-    whiteTimer: null,
     isGameOver: false,
 
     updateState(pieces) {
@@ -72,8 +70,8 @@ export const board = reactive({
         state.append('turnsSinceLastCapture', this.turnsSinceLastCapture);
         state.append('pieceStateHistory', JSON.stringify(this.pieceStateHistory));
         state.append('turnStart', new Date().getTime());
-        state.append('blackTimer', JSON.stringify(this.blackTimer));
-        state.append('whiteTimer', JSON.stringify(this.whiteTimer));
+        state.append('blackTimer', JSON.stringify(timers.blackTimer));
+        state.append('whiteTimer', JSON.stringify(timers.whiteTimer));
 
         axios.post(`/game/${gameId}/save-state`, state, {
             headers: {
@@ -85,8 +83,8 @@ export const board = reactive({
     loadState(game) {
         if (!game.pieces) {
             this.updateState(pieces);
-            const defaultClockState = { minutes: 30, seconds: 0 };
-            this.setTimers(defaultClockState, defaultClockState, new Date().getTime());
+            const defaultClockState = { minutes: game.length, seconds: 0 };
+            timers.setTimers(defaultClockState, defaultClockState, new Date().getTime());
 
             this.saveState(game.id);
             return;
@@ -96,22 +94,7 @@ export const board = reactive({
         this.turn = game.turn;
         this.turnsSinceLastCapture = game.turnsSinceLastCapture;
         this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-        this.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
+        timers.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
         this.updateState(this.pieces);
     },
-
-    setTimers(whTimerData, blTimerData, turnStart) {
-        const msPassed = new Date().getTime() - turnStart;
-        const sPassed = parseInt((msPassed / 1000) % 60);
-        const mPassed = parseInt((msPassed / (1000 * 60)) % 60);
-
-        const whAdjustedMinutes = this.turn % 2 !== 0 ? whTimerData.minutes - mPassed : whTimerData.minutes;
-        const whAdjustedSeconds = this.turn % 2 !== 0 ? whTimerData.seconds - sPassed : whTimerData.seconds;
-        const blAdjustedMinutes = this.turn % 2 !== 0 ? blTimerData.minutes : blTimerData.minutes - mPassed;
-        const blAdjustedSeconds = this.turn % 2 !== 0 ? blTimerData.seconds : blTimerData.seconds - sPassed;
-
-        this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whAdjustedMinutes * 60 + whAdjustedSeconds));
-        this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blAdjustedMinutes * 60 + blAdjustedSeconds));
-
-    }
 });
