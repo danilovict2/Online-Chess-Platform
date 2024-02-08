@@ -13,3 +13,32 @@
     font-weight: 800;
     line-height: 1.1;
 }
+
+.skill-level-radio {
+    display: none;
+}
+
+.skill-level-radio:checked  + label {
+    border-color: #81b64c;
+}
+
+.skill-level label {
+    background-color: rgba(0,0,0,.2);
+    border: .2rem solid transparent;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 5rem;
+    margin-bottom: 2rem;
+    padding: 0 3rem;
+    cursor: pointer;
+    font-weight: bolder;
+}
+
+.skill-level-radio:checked  + label::after {
+    color: #81b64c;
+    content: "ἰ";
+    font-family: "Chess V3";
+    font-size: 2rem;
+}

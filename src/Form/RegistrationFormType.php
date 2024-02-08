@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -40,7 +41,17 @@ class RegistrationFormType extends AbstractType
                     ]),
                 ],
             ])
-        ;
+            ->add('baseElo', ChoiceType::class, [
+                'choices' => [
+                    'New to Chess' => 0,
+                    'Beginner' => 400,
+                    'Intermediate' => 800,
+                    'Advanced' => 1200
+                ],
+                'choice_attr' => fn () => ['class' => 'skill-level-radio'],
+                'expanded' => true,
+                'mapped' => false
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -1,28 +1,33 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Register
+{% endblock %}
 
 {% block body %}
 	<div class="register-background h-100 d-flex flex-column align-items-center">
 		<div class="register-container mt-4" {{ stimulus_controller('registration') }}>
-			<h1 class="fw-bolder text-center" data-registration-target="header">Enter your email and a password</h1>
+			<h1 class="fw-bolder text-center" data-registration-target="header">What is your chess skill level?</h1>
 			<!-- TODO: Implement errors -->
 			{{ form_start(registrationForm, {'attr': {'class': 'h-100 w-100 d-flex flex-column justify-content-center mt-5', 'data-registration-target': 'registrationForm'}}) }}
-			<div class="auth-form-input position-relative w-100 h-100" data-registration-target="email">
+			<div class="skill-level" data-registration-target="firstPage">
+				{{ form_widget(registrationForm.baseElo, {'attr': {'class': 'd-flex flex-column'}}) }}
+			</div>
+
+			<div class="auth-form-input position-relative w-100 h-100" data-registration-target="email" style="display: none">
 				<i class="fa-solid fa-user position-absolute top-0 start-0" style="color: #9e9d9c; padding-top: 15px; padding-left: 5px"></i>
 				{{ form_widget(registrationForm.email, {'attr': {'placeholder': 'Email', 'class': 'h-50 px-4'}}) }}
 			</div>
 
-			<div class="auth-form-input position-relative w-100 h-100" data-registration-target="password">
+			<div class="auth-form-input position-relative w-100 h-100" data-registration-target="password" style="display: none">
 				<i class="fa-solid fa-lock position-absolute top-0 start-0" style="color: #9e9d9c; padding-top: 15px; padding-left: 5px"></i>
 				{{ form_widget(registrationForm.plainPassword, {'attr': {'placeholder': 'Password', 'class': 'h-50 px-4'}}) }}
 			</div>
 
-			<div class="username auth-form-input w-100 h-75" data-registration-target="username" style="display: none;">
+			<div class="username auth-form-input w-100 h-75" data-registration-target="thirdPage" style="display: none;">
 				{{ form_widget(registrationForm.username, {'attr': {'placeholder': 'Username'}}) }}
 			</div>
 
-			<button type="button" data-registration-target="submitButton" data-action="registration#showUsernameInputThenSubmitForm" class="btn btn-lg w-100">
+			<button type="button" data-registration-target="submitButton" data-action="registration#showNextPageThenSubmitForm" class="btn btn-lg w-100">
 				Continue
 			</button>
 			{{ form_end(registrationForm) }}

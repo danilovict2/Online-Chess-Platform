@@ -4,5 +4,10 @@
          url('segoe_ui-webfont.woff') format('woff');
     font-weight: normal;
     font-style: normal;
-
 }
+
+@font-face {
+    font-family: 'Chess V3';
+    src: url('chessV3.woff2');
+}
+  
