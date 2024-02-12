@@ -2,7 +2,7 @@
     <div class="user-data">
         <span>
             <img src="/images/default-user-image.svg" class="d-inline-block align-text-top">
-            {{ player.username }} (800)
+            {{ player.username }} ({{ player.elo }}) (win +{{ winElo }} / tie {{ tieElo < 0 ? "-":"+" + tieElo }} / loss {{ lossElo }})
         </span>
         <Clock :team="playerTeam"></Clock>
     </div>
@@ -12,7 +12,10 @@
 import Clock from './Clock.vue';
 defineProps({
     player: Object,
-    playerTeam: String
+    playerTeam: String,
+    winElo: Number,
+    tieElo: Number,
+    lossElo: Number
 });
 </script>
 

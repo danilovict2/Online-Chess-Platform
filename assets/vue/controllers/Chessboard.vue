@@ -1,10 +1,18 @@
 <template>
-    <UserData :player="game.players[1]" player-team="b"></UserData>
+    <UserData :player="game.players[1]" player-team="b"
+        :win-elo="EloChangeCalculator.winEloChange(game.players[1], game.players[0])"
+        :tie-elo="EloChangeCalculator.tieEloChange(game.players[1], game.players[0])"
+        :loss-elo="EloChangeCalculator.lossEloChange(game.players[1], game.players[0])"
+    ></UserData>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece" />
     </div>
-    <UserData :player="game.players[0]" player-team="w"></UserData>
+    <UserData :player="game.players[0]" player-team="w"
+        :win-elo="EloChangeCalculator.winEloChange(game.players[0], game.players[1])"
+        :tie-elo="EloChangeCalculator.tieEloChange(game.players[0], game.players[1])"
+        :loss-elo="EloChangeCalculator.lossEloChange(game.players[0], game.players[1])"
+    ></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam" @promote-to="promoteTo" />
     <EndGameModal v-show="endgameMessage && !isPlayAgainModalActive" :message="endgameMessage"
         @sendPlayAgainProposal="sendPlayAgainProposal" />
@@ -29,6 +37,7 @@ import EndgameHandler from '../services/EndgameHandler.js';
 import UserData from '../components/UserData.vue';
 import initWebSocket from '../services/websocket';
 import { timers } from '../stores/timers';
+import EloChangeCalculator from '../services/EloChangeCalculator';
 
 const { game, user } = defineProps({
     game: Object,
@@ -48,6 +57,8 @@ const currentPieceDOMElement = ref(null);
 const endgameMessage = ref('');
 const isPlayAgainModalActive = ref(false);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
+const opponent = user.id === game.players[0].id ? game.players[1] : game.players[0];
+
 
 watchEffect(() => {
     if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
@@ -168,8 +179,7 @@ function promote(promotedPawn, pieceType, promotionTile) {
 }
 
 function sendPlayAgainProposal() {
-    const opponentID = user.id === game.players[0].id ? game.players[1].id : game.players[0].id;
-    sendPostRequest(`/game/${game.id}/play-again-request/${opponentID}`, null);
+    sendPostRequest(`/game/${game.id}/play-again-request/${opponent.id}`, null);
 }
 
 function enablePlayAgainModal() {
@@ -182,8 +192,7 @@ function disablePlayAgainModal() {
 
 function playAgain() {
     let data = new FormData();
-    const opponentID = user.id === game.players[0].id ? game.players[1].id : game.players[0].id;
-    data.append('opponent_id', opponentID);
+    data.append('opponent_id', opponent.id);
     data.append('length', game.length);
     sendPostRequest('/game/accept-rematch', data);
 }
