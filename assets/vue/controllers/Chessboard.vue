@@ -1,23 +1,21 @@
 <template>
     <UserData :player="game.players[1]" player-team="b"
-        :win-elo="EloChangeCalculator.winEloChange(game.players[1], game.players[0])"
-        :tie-elo="EloChangeCalculator.tieEloChange(game.players[1], game.players[0])"
-        :loss-elo="EloChangeCalculator.lossEloChange(game.players[1], game.players[0])"
-    ></UserData>
+        :win-elo="EloChangeCalculator.eloChange(game.players[1], game.players[0], 1)"
+        :tie-elo="EloChangeCalculator.eloChange(game.players[1], game.players[0], 0.5)"
+        :loss-elo="EloChangeCalculator.eloChange(game.players[1], game.players[0], 0)"></UserData>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece" />
     </div>
     <UserData :player="game.players[0]" player-team="w"
-        :win-elo="EloChangeCalculator.winEloChange(game.players[0], game.players[1])"
-        :tie-elo="EloChangeCalculator.tieEloChange(game.players[0], game.players[1])"
-        :loss-elo="EloChangeCalculator.lossEloChange(game.players[0], game.players[1])"
-    ></UserData>
+        :win-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 1)"
+        :tie-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 0.5)"
+        :loss-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 0)"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam" @promote-to="promoteTo" />
-    <EndGameModal v-show="endgameMessage && !isPlayAgainModalActive" :message="endgameMessage"
+    <EndGameModal v-show="gameOverMessage && !isPlayAgainModalActive" :message="gameOverMessage"
         @sendPlayAgainProposal="sendPlayAgainProposal" />
-    <PlayAgainModal v-show="isPlayAgainModalActive" @disable="disablePlayAgainModal" username="random" :length="game.length"
-        @accept="playAgain" />
+    <PlayAgainModal v-show="isPlayAgainModalActive" @disable="disablePlayAgainModal" :opponent="opponent"
+        :length="game.length" @accept="playAgain" />
 </template>
 
 <script setup>
@@ -54,7 +52,7 @@ let promotionTile = null;
 const possibleMoves = ref([]);
 const promotionPawn = ref(null);
 const currentPieceDOMElement = ref(null);
-const endgameMessage = ref('');
+const gameOverMessage = ref('');
 const isPlayAgainModalActive = ref(false);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 const opponent = user.id === game.players[0].id ? game.players[1] : game.players[0];
@@ -62,14 +60,15 @@ const opponent = user.id === game.players[0].id ? game.players[1] : game.players
 
 watchEffect(() => {
     if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
-        endgameMessage.value = timers.whiteTimer.isExpired ? 'Black won on time' : 'White won on time';
+        gameOverMessage.value = timers.whiteTimer.isExpired ? 'Black won on time' : 'White won on time';
     }
 
-    if (endgameMessage.value) {
+    if (gameOverMessage.value) {
         board.isGameOver = true;
         sendPostRequest(`/game/${game.id}/delete`, null);
     }
 });
+
 
 onMounted(() => {
     boardLimits = {
@@ -128,7 +127,6 @@ function dropPiece(e) {
     } else {
         resetCurrentPieceDOMElementPosition();
     }
-
     currentPieceDOMElement.value = null;
     possibleMoves.value = [];
 }
@@ -151,7 +149,38 @@ function isPromotionMove(piece, toMoveTile) {
 function playMove(pieceToMove, toMoveTile) {
     board.updateState(new MoveHandler().playMove(pieceToMove, toMoveTile));
     board.saveState(game.id);
-    endgameMessage.value = new EndgameHandler().checkAndHandleEndgame(pieceToMove.team);
+    const gameStatus = new EndgameHandler().getGameStatus(pieceToMove.team, currentPlayerTeam);
+    if (gameStatus === -1) return;
+    gameOverMessage.value = getGameOverMessage(gameStatus);
+    const data = new FormData();
+    data.append('elo', EloChangeCalculator.eloChange(user, opponent, gameStatus));
+    sendPostRequest('/game/update-elo', data);
+}
+
+function getGameOverMessage(gameStatus) {
+    if (gameStatus === 1) {
+        return "You won!";
+    } else if (gameStatus === 0.5) {
+        return `Draw by ${getDrawMessage()}`;
+    } else {
+        return "You lost!";
+    }
+}
+
+function getDrawMessage() {
+    if (board.pieces.size === 2) {
+        return 'Insufficient Material';
+    } else if (board.turn % 2 !== 0) {
+        if (board.turnsSinceLastCapture === 50) return '50-Move Rule';
+        if (isThreefoldRepetition()) return 'Threefold Repetition';
+    }
+
+    return 'Draw by Stalemate';
+}
+
+function isThreefoldRepetition() {
+    const currentPieceState = board.getCurrentPieceState();
+    return board.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
 }
 
 function resetCurrentPieceDOMElementPosition() {

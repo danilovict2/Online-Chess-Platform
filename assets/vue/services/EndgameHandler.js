@@ -25,16 +25,42 @@ export default class EndgameHandler {
 
         return `The Winner is ${(currentTeam === 'w') ? 'White' : 'Black'}`;
     }
+
+    /**
+     * Returns game status: -1: game not over, 0: player lost, 0.5: tie, 1: player won
+     */
+    getGameStatus(movedPieceTeam, currentPlayerTeam) {
+        const isDraw = this.isDraw();
+        if (isDraw) {
+            return 0.5;
+        }
     
-    getDrawReasonIfGameIsADraw() {
-        if (board.pieces.size === 2) {
-            return 'Insufficient Material';
-        } else if(board.turn % 2 !== 0) {
-            if (board.turnsSinceLastCapture === 50) return '50-Move Rule';
-            if (this.isThreefoldRepetition()) return 'Threefold Repetition';
+        const enemyPieces = getEnemyPieces(movedPieceTeam);
+        const possibleMovesCalculator = new PossibleMovesCalculator();
+
+        for (const enemy of enemyPieces) {
+            // If enemy has valid moves the game is not over
+            if (possibleMovesCalculator.calculatePossibleMovesForPiece(enemy).length > 0) {
+                return -1;
+            }
+        }
+    
+        if (!possibleMovesCalculator.canEnemyPieceCaptureKing(getKingOfTeam(enemyPieces[0].team))) {
+            return 0.5;
         }
 
-        return '';
+        return Number(movedPieceTeam === currentPlayerTeam);
+    }
+    
+    isDraw() {
+        if (board.pieces.size === 2) {
+            return true;
+        } else if(board.turn % 2 !== 0) {
+            if (board.turnsSinceLastCapture === 50) return true;
+            if (this.isThreefoldRepetition()) return true;
+        }
+
+        return false;
     }
 
     isThreefoldRepetition() {

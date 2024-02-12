@@ -2,7 +2,7 @@
     <div class="custom-modal">
         <div class="body">
             <h4>
-                {{ username }} (800) wants a rematch.
+                {{ opponent.username }} ({{ opponent.elo }}) wants a rematch.
                 <br>
                 {{ length }} min.
             </h4>
@@ -16,7 +16,7 @@
 
 <script setup>
 defineProps({
-    username: String,
+    opponent: Object,
     length: Number
 });
 

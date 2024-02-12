@@ -49,6 +49,17 @@ class GameController extends AbstractController
         return $this->render('game/waiting_room.html.twig');
     }
 
+    #[Route('/update-elo', name: 'game_update_elo', methods: ['POST'])]
+    public function updateElo(Request $request): Response
+    {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $user->setElo($user->getElo() + $request->request->get('elo'));
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        return new Response();
+    }
+
     #[Route('/accept-rematch', name: 'game_accept_rematch', methods: ['POST'])]
     public function acceptRematch(Request $request, MatchmakingService $matchmaking, UserRepository $userRepository, Pusher $pusher): Response
     {
@@ -61,6 +72,7 @@ class GameController extends AbstractController
 
         return new Response();
     }
+
 
     #[Route('/{slug}', name: 'game')]
     public function game(string $slug, GameRepository $gameRepository): Response
