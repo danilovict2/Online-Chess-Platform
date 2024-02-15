@@ -60,7 +60,12 @@ const opponent = user.id === game.players[0].id ? game.players[1] : game.players
 
 watchEffect(() => {
     if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
-        gameOverMessage.value = timers.whiteTimer.isExpired ? 'Black won on time' : 'White won on time';
+        const gameStatus = new EndgameHandler().getGameStatus('w', currentPlayerTeam);
+        gameOverMessage.value = getGameOverMessage(gameStatus);
+        
+        const data = new FormData();
+        data.append('elo', EloChangeCalculator.eloChange(user, opponent, gameStatus));
+        sendPostRequest('/game/update-elo', data);
     }
 
     if (gameOverMessage.value) {

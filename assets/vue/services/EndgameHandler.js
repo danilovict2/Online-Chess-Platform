@@ -1,5 +1,6 @@
 import { getEnemyPieces, getKingOfTeam } from "../common/helpers.js";
 import { board } from "../stores/board.js";
+import { timers } from "../stores/timers.js";
 import PossibleMovesCalculator from './PossibleMovesCalculator.js';
 
 export default class EndgameHandler {
@@ -47,6 +48,13 @@ export default class EndgameHandler {
     
         if (!possibleMovesCalculator.canEnemyPieceCaptureKing(getKingOfTeam(enemyPieces[0].team))) {
             return 0.5;
+        }
+
+        if (timers.whiteTimer.isExpired) {
+            return currentPlayerTeam !== 'w';
+        }
+        else if (timers.blackTimer.isExpired) {
+            return currentPlayerTeam !== 'b';
         }
 
         return Number(movedPieceTeam === currentPlayerTeam);
