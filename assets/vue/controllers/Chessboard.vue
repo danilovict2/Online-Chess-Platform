@@ -60,12 +60,9 @@ const opponent = user.id === game.players[0].id ? game.players[1] : game.players
 
 watchEffect(() => {
     if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
-        const gameStatus = new EndgameHandler().getGameStatus('w', currentPlayerTeam);
+        const gameStatus = new EndgameHandler().getGameStatus('', currentPlayerTeam);
         gameOverMessage.value = getGameOverMessage(gameStatus);
-        
-        const data = new FormData();
-        data.append('elo', EloChangeCalculator.eloChange(user, opponent, gameStatus));
-        sendPostRequest('/game/update-elo', data);
+        updateElo(gameStatus);
     }
 
     if (gameOverMessage.value) {
@@ -157,9 +154,7 @@ function playMove(pieceToMove, toMoveTile) {
     const gameStatus = new EndgameHandler().getGameStatus(pieceToMove.team, currentPlayerTeam);
     if (gameStatus === -1) return;
     gameOverMessage.value = getGameOverMessage(gameStatus);
-    const data = new FormData();
-    data.append('elo', EloChangeCalculator.eloChange(user, opponent, gameStatus));
-    sendPostRequest('/game/update-elo', data);
+    updateElo(gameStatus);
 }
 
 function getGameOverMessage(gameStatus) {
@@ -186,6 +181,12 @@ function getDrawMessage() {
 function isThreefoldRepetition() {
     const currentPieceState = board.getCurrentPieceState();
     return board.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
+}
+
+function updateElo(gameStatus) {
+    const data = new FormData();
+    data.append('elo', EloChangeCalculator.eloChange(user, opponent, gameStatus));
+    sendPostRequest('/game/update-elo', data);
 }
 
 function resetCurrentPieceDOMElementPosition() {
