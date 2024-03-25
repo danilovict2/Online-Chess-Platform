@@ -1,1 +1,1 @@
-# Symfony-6-Chess
+# Online-Chess-Platform
