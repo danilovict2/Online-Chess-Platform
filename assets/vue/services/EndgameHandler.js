@@ -2,6 +2,7 @@ import { getEnemyPieces, getKingOfTeam } from "../common/helpers.js";
 import { board } from "../stores/board.js";
 import { timers } from "../stores/timers.js";
 import PossibleMovesCalculator from './PossibleMovesCalculator.js';
+import { compressPieceState } from "./compress.js";
 
 export default class EndgameHandler {
     checkAndHandleEndgame(currentTeam) {
@@ -72,7 +73,7 @@ export default class EndgameHandler {
     }
 
     isThreefoldRepetition() {
-        const currentPieceState = board.getCurrentPieceState();
+        const currentPieceState = compressPieceState(board.pieces);
         return board.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
     }
     

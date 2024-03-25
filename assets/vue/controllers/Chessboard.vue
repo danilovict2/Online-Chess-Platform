@@ -36,6 +36,7 @@ import UserData from '../components/UserData.vue';
 import initWebSocket from '../services/websocket';
 import { timers } from '../stores/timers';
 import EloChangeCalculator from '../services/EloChangeCalculator';
+import { compressPieceState } from '../services/compress';
 
 const { game, user } = defineProps({
     game: Object,
@@ -179,7 +180,7 @@ function getDrawMessage() {
 }
 
 function isThreefoldRepetition() {
-    const currentPieceState = board.getCurrentPieceState();
+    const currentPieceState = compressPieceState(board.pieces);
     return board.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
 }
 

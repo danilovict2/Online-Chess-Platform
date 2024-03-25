@@ -1,8 +1,8 @@
 import { reactive } from "vue";
 import { BOARD_DIMENSION, pieces } from "../common/constants.js";
-import axios from "axios";
 import { timers } from "./timers.js";
 import { sendPostRequest } from "../services/axios.js";
+import { compressPieceState } from "../services/compress.js";
 
 export const board = reactive({
     state: [],
@@ -42,26 +42,8 @@ export const board = reactive({
     },
 
     addPieceStateToHistory() {
-        const currentPieceState = this.getCurrentPieceState();
+        const currentPieceState = compressPieceState(this.pieces);
         this.pieceStateHistory.push(currentPieceState);
-    },
-
-    getCurrentPieceState() {
-        let currentPieceState = '';
-        for (let j = BOARD_DIMENSION; j >= 1; --j) {
-            for (let i = 1; i <= BOARD_DIMENSION; ++i) {
-                const foundPiece = this.pieces.get(`${i}-${j}`);
-
-                if (foundPiece) {
-                    const pieceTypeSymbol = foundPiece.type === 'Knight' ? 'n' : foundPiece.type[0].toLowerCase();
-                    currentPieceState += foundPiece.team === 'w' ? pieceTypeSymbol.toUpperCase() : pieceTypeSymbol;
-                } else {
-                    currentPieceState += '0';
-                }
-            }
-        }
-
-        return currentPieceState;
     },
 
     saveState(gameId) {
