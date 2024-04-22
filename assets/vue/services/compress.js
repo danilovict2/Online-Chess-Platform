@@ -1,4 +1,5 @@
 import { BOARD_DIMENSION } from "../common/constants";
+import { board } from "../stores/board";
 
 export function compressPieceState(pieceState) {
     let compressedPieceState = '';
@@ -30,6 +31,9 @@ export function compressPieceState(pieceState) {
             compressedPieceState += '/';
         }
     }
+
+    const nextToMove = ` ${board.turn % 2 === 0 ? 'b' : 'w'}`;
+ 
 
     return compressedPieceState;
 }
