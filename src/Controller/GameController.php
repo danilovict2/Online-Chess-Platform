@@ -11,6 +11,8 @@ use Pusher\Pusher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
@@ -19,7 +21,7 @@ use Symfony\Component\Serializer\Serializer;
 #[Route('/game')]
 class GameController extends AbstractController
 {
-    public  function __construct(private EntityManagerInterface $entityManager)
+    public  function __construct(private EntityManagerInterface $entityManager, private HubInterface $hub)
     {
     }
 
@@ -61,14 +63,17 @@ class GameController extends AbstractController
     }
 
     #[Route('/accept-rematch', name: 'game_accept_rematch', methods: ['POST'])]
-    public function acceptRematch(Request $request, MatchmakingService $matchmaking, UserRepository $userRepository, Pusher $pusher): Response
+    public function acceptRematch(Request $request, MatchmakingService $matchmaking, UserRepository $userRepository): Response
     {
         $matchmaking->enter($this->getUser(), $request->request->getInt('length'));
         $matchmaking->enter($userRepository->find($request->request->getInt('opponent_id')), $request->request->getInt('length'));
-        
-        $pusher->trigger('game', 'redirect_to_new_game', [
-            'url' => $this->generateUrl('game', ['slug' => $this->getUser()->getGame()->getSlug()])
-        ]);
+
+        $redirectToGameUpdate = new Update(
+            'redirect-to-new-game',
+            json_encode(['url' => $this->generateUrl('game', ['slug' => $this->getUser()->getGame()->getSlug()])])
+        );
+
+        $this->hub->publish($redirectToGameUpdate);
 
         return new Response();
     }
@@ -90,25 +95,39 @@ class GameController extends AbstractController
     }
 
     #[Route('/{id}/move-played', name: 'move_played', methods: ['POST'])]
-    public function movePlayed(int $id, Pusher $pusher, Request $request): Response
+    public function movePlayed(int $id, Request $request): Response
     {
-        $pusher->trigger('game', 'move_played', ['game_id' => $id, 'piece' => $request->request->get('piece'), 'toMoveTile' => $request->request->get('toMoveTile')]);
+        $moveUpdate = new Update(
+            'move-played',
+            json_encode([
+                'game_id' => $id,
+                'piece' => $request->request->get('piece'),
+                'toMoveTile' => $request->request->get('toMoveTile')
+            ])
+        );
+        $this->hub->publish($moveUpdate);
+
         return new Response();
     }
 
     #[Route('/{id}/promotion-move-played', name: 'promotion_move_played', methods: ['POST'])]
-    public function promotionMovePlayed(int $id, Pusher $pusher, Request $request): Response
+    public function promotionMovePlayed(int $id, Request $request): Response
     {
-        $pusher->trigger('game', 'promotion_move_played', [
-            'game_id' => $id, 
-            'promotedPawn' => $request->request->get('promotedPawn'), 
-            'pieceType' => $request->request->get('pieceType'),
-            'promotionTile' => $request->request->get('promotionTile')
-        ]);
+        $promotionMoveUpdate = new Update(
+            'promotion-move-played',
+            json_encode([
+                'game_id' => $id,
+                'promotedPawn' => $request->request->get('promotedPawn'),
+                'pieceType' => $request->request->get('pieceType'),
+                'promotionTile' => $request->request->get('promotionTile')
+            ])
+        );
+        $this->hub->publish($promotionMoveUpdate);
+
         return new Response();
     }
 
-    #[Route('/{id}/save-state', name:'game_save_state', methods: ['POST'])]
+    #[Route('/{id}/save-state', name: 'game_save_state', methods: ['POST'])]
     public function saveState(Request $request, Game $game): Response
     {
         $game->setPieces($request->request->get('pieces'))
@@ -117,15 +136,14 @@ class GameController extends AbstractController
             ->setPieceStateHistory($request->request->get('pieceStateHistory'))
             ->setTurnStart($request->request->get('turnStart'))
             ->setWhiteTimer($request->request->get('whiteTimer'))
-            ->setBlackTimer($request->request->get('blackTimer'))
-        ;
+            ->setBlackTimer($request->request->get('blackTimer'));
 
         $this->entityManager->persist($game);
         $this->entityManager->flush();
         return new Response();
     }
 
-    
+
     #[Route('/{id}/delete', name: 'delete_game', methods: ['POST'])]
     public function deleteGame(Game $game): Response
     {
@@ -135,14 +153,18 @@ class GameController extends AbstractController
     }
 
     #[Route('/{id}/play-again-request/{opponentID}', name: 'play_again_request', methods: ['POST'])]
-    public function playAgainRequest(int $id, int $opponentID, Pusher $pusher): Response
+    public function playAgainRequest(int $id, int $opponentID): Response
     {
-        $pusher->trigger('game', 'play_again_request', [
-            'game_id' => $id, 
-            'opponent_id' => $opponentID, 
-            'username' => $this->getUser()->getUsername()
-        ]);
-        
+        $playAgainUpdate = new Update(
+            'play-again-request',
+            json_encode([
+                'game_id' => $id,
+                'opponent_id' => $opponentID,
+                'username' => $this->getUser()->getUsername()
+            ])
+        );
+        $this->hub->publish($playAgainUpdate);
+
         return new Response();
     }
 }

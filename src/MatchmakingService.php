@@ -10,6 +10,8 @@ use App\Repository\MatchQueueRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Pusher\Pusher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class MatchmakingService
@@ -18,7 +20,7 @@ class MatchmakingService
         private MatchQueueRepository $matchQueueRepository,
         private EntityManagerInterface $entityManager,
         private UrlGeneratorInterface $urlGenerator,
-        private Pusher $pusher,
+        private HubInterface $hub,
     ) {
     }
 
@@ -49,8 +51,9 @@ class MatchmakingService
         $this->entityManager->remove($queuedMatches[0]);
         $this->entityManager->flush();
 
+        $matchFoundUpdate = new Update('match-found');
         // Inform the opposing player's client about the match discovery
-        $this->pusher->trigger('waiting-room', 'match-found', []);
+        $this->hub->publish($matchFoundUpdate);
 
         return new RedirectResponse($this->urlGenerator->generate('game', ['slug' => $game->getSlug()]));
     }
