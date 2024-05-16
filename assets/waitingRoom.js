@@ -1,6 +1,6 @@
-import { pusher } from "./pusher.js";
+const url = JSON.parse(document.getElementById("mercure-match-found-url").textContent);
+const eventSource = new EventSource(url);
 
-const waitingRoomChannel = pusher.subscribe('waiting-room');
-waitingRoomChannel.bind('match-found', () => {
+eventSource.onmessage = () => {
     location.reload();
-});
+}

@@ -43,7 +43,6 @@ export const board = reactive({
 
     addPieceStateToHistory() {
         const currentPieceState = compressPieceState(this.pieces);
-        console.log(currentPieceState);
         this.pieceStateHistory.push(currentPieceState);
     },
 

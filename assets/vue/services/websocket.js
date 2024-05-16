@@ -1,5 +1,3 @@
-import { pusher } from '../../pusher.js';
-
 const initWebSocket = (gameId, userId, playMove, promote, enablePlayAgainModal) => {
     const gameChannel = pusher.subscribe('game');
 
