@@ -3,7 +3,19 @@
 {% block navbar %}{% endblock %}
 
 {% block body %}
-    <div class="game">
-        <div {{ vue_component('Chessboard', { game: game, user: user }) }}></div>
-    </div>
+	<div class="game">
+		<div {{ vue_component('Chessboard', { game: game, user: user } )}}></div>
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	<script type="application/json" id="mercure-url">
+		{{ mercure([
+            'move-played',
+            'promotion-move-played',
+            'play-again-request',
+            'redirect-to-new-game'
+        ])|json_encode(constant('JSON_UNESCAPED_SLASHES') b-or constant('JSON_HEX_TAG'))|raw }}
+	</script>
 {% endblock %}

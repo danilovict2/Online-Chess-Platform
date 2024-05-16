@@ -70,7 +70,8 @@ class GameController extends AbstractController
 
         $redirectToGameUpdate = new Update(
             'redirect-to-new-game',
-            json_encode(['url' => $this->generateUrl('game', ['slug' => $this->getUser()->getGame()->getSlug()])])
+            json_encode(['url' => $this->generateUrl('game', ['slug' => $this->getUser()->getGame()->getSlug()])]),
+            id: 'redirect-to-new-game'
         );
 
         $this->hub->publish($redirectToGameUpdate);
@@ -103,7 +104,8 @@ class GameController extends AbstractController
                 'game_id' => $id,
                 'piece' => $request->request->get('piece'),
                 'toMoveTile' => $request->request->get('toMoveTile')
-            ])
+            ]),
+            id: 'move-played'
         );
         $this->hub->publish($moveUpdate);
 
@@ -120,7 +122,8 @@ class GameController extends AbstractController
                 'promotedPawn' => $request->request->get('promotedPawn'),
                 'pieceType' => $request->request->get('pieceType'),
                 'promotionTile' => $request->request->get('promotionTile')
-            ])
+            ]),
+            id: 'promotion-move-played'
         );
         $this->hub->publish($promotionMoveUpdate);
 
@@ -161,7 +164,8 @@ class GameController extends AbstractController
                 'game_id' => $id,
                 'opponent_id' => $opponentID,
                 'username' => $this->getUser()->getUsername()
-            ])
+            ]),
+            id: 'play-again-request'
         );
         $this->hub->publish($playAgainUpdate);
 
