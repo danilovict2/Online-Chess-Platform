@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { BOARD_DIMENSION, pieces } from "../common/constants.js";
+import { BOARD_DIMENSION, pieces, addPiece } from "../common/constants.js";
 import { timers } from "./timers.js";
 import { sendPostRequest } from "../services/axios.js";
 import { compressPieceState } from "../services/compress.js";
@@ -49,10 +49,6 @@ export const board = reactive({
 
     saveState(gameId) {
         const state = new FormData();
-        state.append('pieces', JSON.stringify(Array.from(this.pieces)));
-        state.append('fullmoves', this.fullmoves);
-        state.append('halfmoves', this.halfmoves);
-        state.append('activeColor', this.activeColor)
         state.append('pieceStateHistory', JSON.stringify(this.pieceStateHistory));
         state.append('turnStart', new Date().getTime());
         state.append('blackTimer', JSON.stringify(timers.blackTimer));
@@ -62,8 +58,8 @@ export const board = reactive({
         sendPostRequest(`/game/${gameId}/save-state`, state);
     },
 
-    loadState(game) {
-        if (!game.pieces) {
+    loadState(game) {   
+        if (!game.fen) {
             this.updateState(pieces);
             const defaultClockState = { minutes: game.length, seconds: 0 };
             timers.setTimers(defaultClockState, defaultClockState, new Date().getTime());
@@ -72,12 +68,44 @@ export const board = reactive({
             return;
         }
 
-        this.pieces = new Map(JSON.parse(game.pieces));
-        this.fullmoves = game.fullmoves;
-        this.halfmoves = game.halfmoves;
+        const fenParts = game.fen.split(' ');
+        const pieceState = fenParts[0].split('/').reverse();
+        
+        this.pieces = new Map();
+        for (let y = 1; y <= BOARD_DIMENSION; ++y) {
+            let x = 1;
+            for (let r of pieceState[y - 1]) {
+                if (r >= '1' && r <= '8'){ x += Number(r); continue;}
+                addPiece(this.getPieceFromType(r), (r === r.toLowerCase()) ? 'b' : 'w', x, y);
+                x++;
+            }
+        }
+
+        this.activeColor = fenParts[1];
+        this.halfmoves = Number(fenParts[4]);
+        this.fullmoves = Number(fenParts[5]);
         this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-        this.activeColor = game.activeColor;
         timers.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
         this.updateState(this.pieces);
     },
+
+    getPieceFromType(type) {
+        type = type.toLowerCase();
+        switch (type){
+            case 'p':
+                return 'Pawn';
+            case 'r':
+                return 'Rook';
+            case 'n':
+                return 'Knight';
+            case 'b':
+                return 'Bishop';
+            case 'q':
+                return 'Queen';
+            case 'k':
+                return 'King';    
+            default: 
+                throw new Error('Invalid piece type');    
+        }
+    }
 });

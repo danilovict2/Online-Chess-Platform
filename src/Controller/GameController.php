@@ -132,14 +132,11 @@ class GameController extends AbstractController
     #[Route('/{id}/save-state', name: 'game_save_state', methods: ['POST'])]
     public function saveState(Request $request, Game $game): Response
     {
-        $game->setPieces($request->request->get('pieces'))
-            ->setFullmoves($request->request->get('fullmoves'))
-            ->setHalfmoves($request->request->get('halfMoves'))
-            ->setPieceStateHistory($request->request->get('pieceStateHistory'))
+        $game->setPieceStateHistory($request->request->get('pieceStateHistory'))
             ->setTurnStart($request->request->get('turnStart'))
             ->setWhiteTimer($request->request->get('whiteTimer'))
             ->setBlackTimer($request->request->get('blackTimer'))
-            ->setActiveColor($request->request->get('activeColor'));
+            ->setFen($request->request->get('fen'));
         ;
 
         $this->entityManager->persist($game);

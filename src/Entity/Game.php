@@ -31,9 +31,6 @@ class Game
     private Collection $players;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $pieces = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $pieceStateHistory = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -45,14 +42,8 @@ class Game
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $turnStart = null;
 
-    #[ORM\Column(length: 2, nullable: true)]
-    private ?string $activeColor = 'w';
-
-    #[ORM\Column(nullable: true)]
-    private ?int $fullmoves = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?int $halfmoves = null;
+    #[ORM\Column(length: 95, nullable: true)]
+    private ?string $fen = null;
 
     public function __construct()
     {
@@ -133,18 +124,6 @@ class Game
         return $this;
     }
 
-    public function getPieces(): ?string
-    {
-        return $this->pieces;
-    }
-
-    public function setPieces(string $pieces): static
-    {
-        $this->pieces = $pieces;
-
-        return $this;
-    }
-
     public function getPieceStateHistory(): ?string
     {
         return $this->pieceStateHistory;
@@ -193,38 +172,14 @@ class Game
         return $this;
     }
 
-    public function getActiveColor(): ?string
+    public function getFen(): ?string
     {
-        return $this->activeColor;
+        return $this->fen;
     }
 
-    public function setActiveColor(string $activeColor): static
+    public function setFen(?string $fen): static
     {
-        $this->activeColor = $activeColor;
-
-        return $this;
-    }
-
-    public function getFullmoves(): ?int
-    {
-        return $this->fullmoves;
-    }
-
-    public function setFullmoves(int $fullmoves): static
-    {
-        $this->fullmoves = $fullmoves;
-
-        return $this;
-    }
-
-    public function getHalfmoves(): ?int
-    {
-        return $this->halfmoves;
-    }
-
-    public function setHalfmoves(?int $halfmoves): static
-    {
-        $this->halfmoves = $halfmoves;
+        $this->fen = $fen;
 
         return $this;
     }

@@ -43,7 +43,7 @@ function addKingAndQueenForTeam(team, y) {
     addPiece('Queen', team, 4, y);
 }
 
-function addPiece(pieceType, team, x, y) {
+export function addPiece(pieceType, team, x, y) {
     board.pieces.set(
         `${x}-${y}`,
         { 
