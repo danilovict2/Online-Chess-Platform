@@ -33,12 +33,6 @@ class Game
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $pieces = null;
 
-    #[ORM\Column(length: 5, nullable: true)]
-    private ?string $turn = null;
-
-    #[ORM\Column(length: 5, nullable: true)]
-    private ?string $turnsSinceLastCapture = null;
-
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $pieceStateHistory = null;
 
@@ -50,6 +44,15 @@ class Game
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $turnStart = null;
+
+    #[ORM\Column(length: 2, nullable: true)]
+    private ?string $activeColor = 'w';
+
+    #[ORM\Column(nullable: true)]
+    private ?int $fullmoves = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $halfmoves = null;
 
     public function __construct()
     {
@@ -142,30 +145,6 @@ class Game
         return $this;
     }
 
-    public function getTurn(): ?string
-    {
-        return $this->turn;
-    }
-
-    public function setTurn(string $turn): static
-    {
-        $this->turn = $turn;
-
-        return $this;
-    }
-
-    public function getTurnsSinceLastCapture(): ?string
-    {
-        return $this->turnsSinceLastCapture;
-    }
-
-    public function setTurnsSinceLastCapture(string $turnsSinceLastCapture): static
-    {
-        $this->turnsSinceLastCapture = $turnsSinceLastCapture;
-
-        return $this;
-    }
-
     public function getPieceStateHistory(): ?string
     {
         return $this->pieceStateHistory;
@@ -210,6 +189,42 @@ class Game
     public function setTurnStart(string $turnStart): static
     {
         $this->turnStart = $turnStart;
+
+        return $this;
+    }
+
+    public function getActiveColor(): ?string
+    {
+        return $this->activeColor;
+    }
+
+    public function setActiveColor(string $activeColor): static
+    {
+        $this->activeColor = $activeColor;
+
+        return $this;
+    }
+
+    public function getFullmoves(): ?int
+    {
+        return $this->fullmoves;
+    }
+
+    public function setFullmoves(int $fullmoves): static
+    {
+        $this->fullmoves = $fullmoves;
+
+        return $this;
+    }
+
+    public function getHalfmoves(): ?int
+    {
+        return $this->halfmoves;
+    }
+
+    public function setHalfmoves(?int $halfmoves): static
+    {
+        $this->halfmoves = $halfmoves;
 
         return $this;
     }

@@ -7,8 +7,8 @@ import { compressPieceState } from "../services/compress.js";
 export const board = reactive({
     state: [],
     pieces: new Map(),
-    fullMoves: 0,
-    halfMoves: 0,
+    fullmoves: 0,
+    halfmoves: 0,
     pieceStateHistory: [],
     isGameOver: false,
     activeColor: 'w',
@@ -29,7 +29,7 @@ export const board = reactive({
             }
         }
 
-        if (this.fullMoves > 1) {
+        if (this.fullmoves > 0) {
             this.addPieceStateToHistory();
         }
     },
@@ -44,15 +44,15 @@ export const board = reactive({
 
     addPieceStateToHistory() {
         const currentPieceState = compressPieceState(this.pieces);
-        console.log(currentPieceState);
         this.pieceStateHistory.push(currentPieceState);
     },
 
     saveState(gameId) {
         const state = new FormData();
         state.append('pieces', JSON.stringify(Array.from(this.pieces)));
-        state.append('turn', this.fullMoves);
-        state.append('turnsSinceLastCapture', this.halfMoves);
+        state.append('fullmoves', this.fullmoves);
+        state.append('halfmoves', this.halfmoves);
+        state.append('activeColor', this.activeColor)
         state.append('pieceStateHistory', JSON.stringify(this.pieceStateHistory));
         state.append('turnStart', new Date().getTime());
         state.append('blackTimer', JSON.stringify(timers.blackTimer));
@@ -72,9 +72,10 @@ export const board = reactive({
         }
 
         this.pieces = new Map(JSON.parse(game.pieces));
-        this.fullMoves = game.turn;
-        this.halfMoves = game.turnsSinceLastCapture;
+        this.fullmoves = game.fullmoves;
+        this.halfmoves = game.halfmoves;
         this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
+        this.activeColor = game.activeColor;
         timers.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
         this.updateState(this.pieces);
     },

@@ -7,7 +7,6 @@ use App\MatchmakingService;
 use App\Repository\GameRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Pusher\Pusher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -134,12 +133,14 @@ class GameController extends AbstractController
     public function saveState(Request $request, Game $game): Response
     {
         $game->setPieces($request->request->get('pieces'))
-            ->setTurn($request->request->get('turn'))
-            ->setTurnsSinceLastCapture($request->request->get('turnsSinceLastCapture'))
+            ->setFullmoves($request->request->get('fullmoves'))
+            ->setHalfmoves($request->request->get('halfMoves'))
             ->setPieceStateHistory($request->request->get('pieceStateHistory'))
             ->setTurnStart($request->request->get('turnStart'))
             ->setWhiteTimer($request->request->get('whiteTimer'))
-            ->setBlackTimer($request->request->get('blackTimer'));
+            ->setBlackTimer($request->request->get('blackTimer'))
+            ->setActiveColor($request->request->get('activeColor'));
+        ;
 
         $this->entityManager->persist($game);
         $this->entityManager->flush();
