@@ -168,7 +168,7 @@ function getDrawMessage() {
     if (board.pieces.size === 2) {
         return 'Insufficient Material';
     } else if (board.activeColor === 'w') {
-        if (board.halfMoves === 100) return '50-Move Rule';
+        if (board.halfmoves === 100) return '50-Move Rule';
         if (isThreefoldRepetition()) return 'Threefold Repetition';
     }
 

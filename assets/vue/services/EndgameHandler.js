@@ -65,7 +65,7 @@ export default class EndgameHandler {
         if (board.pieces.size === 2) {
             return true;
         } else if(board.activeColor === 'w') {
-            if (board.halfMoves === 100) return true;
+            if (board.halfmoves === 100) return true;
             if (this.isThreefoldRepetition()) return true;
         }
 

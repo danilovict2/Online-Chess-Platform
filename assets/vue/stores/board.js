@@ -57,6 +57,7 @@ export const board = reactive({
         state.append('turnStart', new Date().getTime());
         state.append('blackTimer', JSON.stringify(timers.blackTimer));
         state.append('whiteTimer', JSON.stringify(timers.whiteTimer));
+        state.append('fen', compressPieceState(this.pieces));
 
         sendPostRequest(`/game/${gameId}/save-state`, state);
     },

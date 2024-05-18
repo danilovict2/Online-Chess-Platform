@@ -16,7 +16,7 @@ export default class MoveHandler {
                 samePosition(piece, toMovetile) ||
                 (isEnPassant && samePosition(piece, { x: toMovetile.x, y: toMovetile.y - enPassantCaptureDirection }))
             ) {
-                board.halfMoves = 0;
+                board.halfmoves = 0;
                 continue;
             }
 
@@ -31,8 +31,8 @@ export default class MoveHandler {
         }
 
         // Same size means no capture has been made
-        board.halfMoves += board.pieces.size === piecesAfterMove.size;
-        board.fullMoves += board.activeColor === 'b';
+        board.halfmoves += board.pieces.size === piecesAfterMove.size;
+        board.fullmoves += board.activeColor === 'b';
         board.activeColor = (board.activeColor === 'b') ? 'w' : 'b';
 
         return piecesAfterMove;

@@ -42,7 +42,7 @@ export function compressPieceState(pieceState) {
     const castlingFenPart = (whiteCastlingRights === blackCastlingRights) ? '-' :  whiteCastlingRights + blackCastlingRights;
     possibleEnPassantTargets = possibleEnPassantTargets.length ? possibleEnPassantTargets : ' -';
 
-    fen += board.activeColor + ' ' + castlingFenPart + possibleEnPassantTargets + ' ' + board.halfMoves + ' ' + board.fullMoves;
+    fen += board.activeColor + ' ' + castlingFenPart + possibleEnPassantTargets + ' ' + board.halfmoves + ' ' + board.fullmoves;
 
     return fen;
 }
