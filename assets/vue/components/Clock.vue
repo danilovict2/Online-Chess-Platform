@@ -16,7 +16,7 @@ const { team } = defineProps({
 const clock = team === 'w' ? timers.whiteTimer : timers.blackTimer;
 
 watchEffect(() => {
-    if ((board.turn % 2 !== 0 && team === 'w') || (board.turn % 2 === 0 && team === 'b') && !board.isGameOver) {
+    if (board.activeColor === team && !board.isGameOver) {
         clock.resume();
     } else {
         clock.pause();

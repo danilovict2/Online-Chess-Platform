@@ -93,15 +93,11 @@ function grabPiece(pieceDOMElement, e) {
 }
 
 function calculatePossibleMoves() {
-    if (currentPiece.team === currentPlayerTeam && isPlayersTurn(currentPlayerTeam)) {
+    if (currentPiece.team === currentPlayerTeam && board.activeColor === currentPlayerTeam) {
         possibleMoves.value = new PossibleMovesCalculator().calculatePossibleMovesForPiece(currentPiece);
     }
 }
 
-function isPlayersTurn(playerTeam) {
-    return (playerTeam === 'w' && board.turn % 2 !== 0) ||
-        (playerTeam === 'b' && board.turn % 2 === 0);
-}
 
 function moveCurrentPieceDOMElement(e) {
     if (currentPieceDOMElement.value) {
@@ -171,8 +167,8 @@ function getGameOverMessage(gameStatus) {
 function getDrawMessage() {
     if (board.pieces.size === 2) {
         return 'Insufficient Material';
-    } else if (board.turn % 2 !== 0) {
-        if (board.turnsSinceLastCapture === 50) return '50-Move Rule';
+    } else if (board.activeColor === 'w') {
+        if (board.halfMoves === 100) return '50-Move Rule';
         if (isThreefoldRepetition()) return 'Threefold Repetition';
     }
 

@@ -37,13 +37,12 @@ export function compressPieceState(pieceState) {
         }
     }
 
-    const nextToMove = ` ${board.turn % 2 === 0 ? 'b' : 'w'}`;
     const whiteCastlingRights = getCastlingRights('w', pieceState);
     const blackCastlingRights = getCastlingRights('b', pieceState);
     const castlingFenPart = (whiteCastlingRights === blackCastlingRights) ? '-' :  whiteCastlingRights + blackCastlingRights;
     possibleEnPassantTargets = possibleEnPassantTargets.length ? possibleEnPassantTargets : ' -';
 
-    fen += nextToMove + ' ' + castlingFenPart + possibleEnPassantTargets;
+    fen += board.activeColor + ' ' + castlingFenPart + possibleEnPassantTargets + ' ' + board.halfMoves + ' ' + board.fullMoves;
 
     return fen;
 }

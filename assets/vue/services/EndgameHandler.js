@@ -64,8 +64,8 @@ export default class EndgameHandler {
     isDraw() {
         if (board.pieces.size === 2) {
             return true;
-        } else if(board.turn % 2 !== 0) {
-            if (board.turnsSinceLastCapture === 50) return true;
+        } else if(board.activeColor === 'w') {
+            if (board.halfMoves === 100) return true;
             if (this.isThreefoldRepetition()) return true;
         }
 

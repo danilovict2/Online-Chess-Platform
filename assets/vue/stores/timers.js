@@ -11,10 +11,10 @@ export const timers = reactive({
         const sPassed = parseInt((msPassed / 1000) % 60);
         const mPassed = parseInt((msPassed / (1000 * 60)) % 60);
 
-        const whAdjustedMinutes = board.turn % 2 !== 0 ? whTimerData.minutes - mPassed : whTimerData.minutes;
-        const whAdjustedSeconds = board.turn % 2 !== 0 ? whTimerData.seconds - sPassed : whTimerData.seconds;
-        const blAdjustedMinutes = board.turn % 2 !== 0 ? blTimerData.minutes : blTimerData.minutes - mPassed;
-        const blAdjustedSeconds = board.turn % 2 !== 0 ? blTimerData.seconds : blTimerData.seconds - sPassed;
+        const whAdjustedMinutes = board.activeColor === 'w' ? whTimerData.minutes - mPassed : whTimerData.minutes;
+        const whAdjustedSeconds = board.activeColor === 'w' ? whTimerData.seconds - sPassed : whTimerData.seconds;
+        const blAdjustedMinutes = board.activeColor === 'w' ? blTimerData.minutes : blTimerData.minutes - mPassed;
+        const blAdjustedSeconds = board.activeColor === 'w' ? blTimerData.seconds : blTimerData.seconds - sPassed;
 
         this.whiteTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + whAdjustedMinutes * 60 + whAdjustedSeconds));
         this.blackTimer = useTimer(new Date().setSeconds(new Date().getSeconds() + blAdjustedMinutes * 60 + blAdjustedSeconds));
