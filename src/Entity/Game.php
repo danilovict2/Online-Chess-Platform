@@ -42,8 +42,8 @@ class Game
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $turnStart = null;
 
-    #[ORM\Column(length: 95, nullable: true)]
-    private ?string $fen = null;
+    #[ORM\Column(length: 95)]
+    private ?string $fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
     public function __construct()
     {

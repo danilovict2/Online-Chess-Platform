@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { BOARD_DIMENSION, pieces, addPiece } from "../common/constants.js";
+import { BOARD_DIMENSION } from "../common/constants.js";
 import { timers } from "./timers.js";
 import { sendPostRequest } from "../services/axios.js";
 import { compressPieceState } from "../services/compress.js";
@@ -42,7 +42,6 @@ export const board = reactive({
 
     addPieceStateToHistory() {
         const currentPieceState = compressPieceState(this.pieces).split(' ')[0];
-        console.log(this.pieceStateHistory);
         this.pieceStateHistory.push(currentPieceState);
     },
 
@@ -58,13 +57,13 @@ export const board = reactive({
     },
 
     loadState(game) {
-        if (!game.fen) {
-            this.updateState(pieces);
+        if (!game.pieceStateHistory) {
             const defaultClockState = { minutes: game.length, seconds: 0 };
             timers.setTimers(defaultClockState, defaultClockState, new Date().getTime());
-
             this.saveState(game.id);
-            return;
+        } else {
+            this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
+            timers.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
         }
 
         const fenParts = game.fen.split(' ');
@@ -77,7 +76,7 @@ export const board = reactive({
                 if (r >= '1' && r <= '8') { x += Number(r); continue; }
                 const type = this.getPieceFromType(r);
                 const team = (r === r.toLowerCase()) ? 'b' : 'w';
-                addPiece(type, team, x, y, (type === 'Rook' || type === 'King'));
+                this.addPiece(type, team, x, y, (type === 'Rook' || type === 'King'));
                 x++;
             }
         }
@@ -98,8 +97,6 @@ export const board = reactive({
             }
         }
 
-        console.log(game.fen);
-
 
         if (fenParts[3] !== '-') {
             const subs = (fenParts[1] === 'w') ? 1 : -1;
@@ -112,8 +109,6 @@ export const board = reactive({
         this.activeColor = fenParts[1];
         this.halfmoves = Number(fenParts[4]);
         this.fullmoves = Number(fenParts[5]);
-        this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-        timers.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
         this.updateState(this.pieces);
     },
 
@@ -135,5 +130,16 @@ export const board = reactive({
             default:
                 throw new Error('Invalid piece type');
         }
-    }
+    },
+
+    addPiece(pieceType, team, x, y, hasMoved = false) {
+        this.pieces.set(
+            `${x}-${y}`,
+            { 
+                x: x, y: y,
+                type: pieceType, team: team, 
+                hasMoved: hasMoved, enPassant: false 
+            }
+        );
+    },
 });
