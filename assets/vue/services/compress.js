@@ -48,18 +48,15 @@ export function compressPieceState(pieceState) {
 
 function getCastlingRights(color, pieceState) {
     if (getKingOfTeam(color).hasMoved)return '';
-    
+    let castlingRights = '';
+
     if (color === 'w') {
-        let castlingRights = '';
-        if (!pieceState.get('1-1').hasMoved)castlingRights += 'K';
-        if (!pieceState.get('8-1').hasMoved)castlingRights += 'Q';
-        return castlingRights.length ? castlingRights : '-';
+        if (pieceState.has('8-1') && !pieceState.get('8-1').hasMoved)castlingRights += 'K';
+        if (pieceState.has('1-1') && !pieceState.get('1-1').hasMoved)castlingRights += 'Q';
     } else {
-        let castlingRights = '';
-        if (!pieceState.get('1-8').hasMoved)castlingRights += 'q';
-        if (!pieceState.get('8-8').hasMoved)castlingRights += 'k';
-        return castlingRights.length ? castlingRights : '-';
+        if (pieceState.has('1-8') && !pieceState.get('1-8').hasMoved)castlingRights += 'q';
+        if (pieceState.has('8-8') && !pieceState.get('8-8').hasMoved)castlingRights += 'k';
     }
 
-    return '';
+    return castlingRights;
 }

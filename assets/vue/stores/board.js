@@ -58,7 +58,7 @@ export const board = reactive({
         sendPostRequest(`/game/${gameId}/save-state`, state);
     },
 
-    loadState(game) {   
+    loadState(game) {
         if (!game.fen) {
             this.updateState(pieces);
             const defaultClockState = { minutes: game.length, seconds: 0 };
@@ -70,15 +70,44 @@ export const board = reactive({
 
         const fenParts = game.fen.split(' ');
         const pieceState = fenParts[0].split('/').reverse();
-        
+
         this.pieces = new Map();
         for (let y = 1; y <= BOARD_DIMENSION; ++y) {
             let x = 1;
             for (let r of pieceState[y - 1]) {
-                if (r >= '1' && r <= '8'){ x += Number(r); continue;}
-                addPiece(this.getPieceFromType(r), (r === r.toLowerCase()) ? 'b' : 'w', x, y);
+                if (r >= '1' && r <= '8') { x += Number(r); continue; }
+                const type = this.getPieceFromType(r);
+                const team = (r === r.toLowerCase()) ? 'b' : 'w';
+                addPiece(type, team, x, y, (type === 'Rook' || type === 'King'));
                 x++;
             }
+        }
+
+        if (fenParts[2] !== '-') {
+            for (let castlingRight of fenParts[2]) {
+                const y = (castlingRight === 'K' || castlingRight === 'Q') ? 1 : 8;
+                
+                const king = this.pieces.get(`5-${y}`);
+                king.hasMoved = false;
+                
+                const rX = (castlingRight.toLowerCase() === 'k') ? 8 : 1;
+                const rook = this.pieces.get(`${rX}-${y}`);
+                rook.hasMoved = false;
+
+                this.pieces.set(`5-${y}`, king);
+                this.pieces.set(`${rX}-${y}`, rook);
+            }
+        }
+
+        console.log(game.fen);
+
+
+        if (fenParts[3] !== '-') {
+            const subs = (fenParts[1] === 'w') ? 1 : -1;
+            const [x, y] = [fenParts[3][0].charCodeAt(0) - 96, Number(fenParts[3][1]) - subs];
+            const pawn = this.pieces.get(`${x}-${y}`);
+            pawn.enPassant = true;
+            this.pieces.set(`${x}-${y}`, pawn);
         }
 
         this.activeColor = fenParts[1];
@@ -91,7 +120,7 @@ export const board = reactive({
 
     getPieceFromType(type) {
         type = type.toLowerCase();
-        switch (type){
+        switch (type) {
             case 'p':
                 return 'Pawn';
             case 'r':
@@ -103,9 +132,9 @@ export const board = reactive({
             case 'q':
                 return 'Queen';
             case 'k':
-                return 'King';    
-            default: 
-                throw new Error('Invalid piece type');    
+                return 'King';
+            default:
+                throw new Error('Invalid piece type');
         }
     }
 });
