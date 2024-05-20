@@ -7,7 +7,7 @@ import { compressPieceState } from "../services/compress.js";
 export const board = reactive({
     state: [],
     pieces: new Map(),
-    fullmoves: 0,
+    fullmoves: 1,
     halfmoves: 0,
     pieceStateHistory: [],
     isGameOver: false,
@@ -29,9 +29,7 @@ export const board = reactive({
             }
         }
 
-        if (this.fullmoves > 0) {
-            this.addPieceStateToHistory();
-        }
+        this.addPieceStateToHistory();
     },
 
     clonePieces() {
@@ -43,7 +41,8 @@ export const board = reactive({
     },
 
     addPieceStateToHistory() {
-        const currentPieceState = compressPieceState(this.pieces);
+        const currentPieceState = compressPieceState(this.pieces).split(' ')[0];
+        console.log(this.pieceStateHistory);
         this.pieceStateHistory.push(currentPieceState);
     },
 
