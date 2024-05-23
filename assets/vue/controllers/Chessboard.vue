@@ -11,7 +11,8 @@
         :win-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 1)"
         :tie-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 0.5)"
         :loss-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 0)"></UserData>
-    <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam" @promote-to="promoteTo" />
+    <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam"
+        @promote-to="promoteTo" />
     <EndGameModal v-show="gameOverMessage && !isPlayAgainModalActive" :message="gameOverMessage"
         @sendPlayAgainProposal="sendPlayAgainProposal" />
     <PlayAgainModal v-show="isPlayAgainModalActive" @disable="disablePlayAgainModal" :opponent="opponent"
@@ -19,7 +20,7 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted } from 'vue';
+import { ref, watchEffect, watch } from 'vue';
 import { sendPostRequest } from '../services/axios.js';
 import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
@@ -58,7 +59,6 @@ const isPlayAgainModalActive = ref(false);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 const opponent = user.id === game.players[0].id ? game.players[1] : game.players[0];
 
-
 watchEffect(() => {
     if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
         const gameStatus = new EndgameHandler().getGameStatus('', currentPlayerTeam);
@@ -72,16 +72,16 @@ watchEffect(() => {
     }
 });
 
+setInterval(setBoardLimits, 100);
 
-onMounted(() => {
+function setBoardLimits() {
     boardLimits = {
         minX: chessboard.value.offsetLeft - 25,
         minY: chessboard.value.offsetTop - 25,
         maxX: chessboard.value.offsetLeft + chessboard.value.clientWidth - 75,
         maxY: chessboard.value.offsetTop + chessboard.value.clientHeight - 90
     };
-});
-
+}
 
 function grabPiece(pieceDOMElement, e) {
     currentPieceDOMElement.value = pieceDOMElement;

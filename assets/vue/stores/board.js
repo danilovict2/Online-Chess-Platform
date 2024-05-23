@@ -57,15 +57,6 @@ export const board = reactive({
     },
 
     loadState(game) {
-        if (!game.pieceStateHistory) {
-            const defaultClockState = { minutes: game.length, seconds: 0 };
-            timers.setTimers(defaultClockState, defaultClockState, new Date().getTime());
-            this.saveState(game.id);
-        } else {
-            this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
-            timers.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
-        }
-
         const fenParts = game.fen.split(' ');
         const pieceState = fenParts[0].split('/').reverse();
 
@@ -110,6 +101,15 @@ export const board = reactive({
         this.halfmoves = Number(fenParts[4]);
         this.fullmoves = Number(fenParts[5]);
         this.updateState(this.pieces);
+
+        if (!game.pieceStateHistory) {
+            const defaultClockState = { minutes: game.length, seconds: 0 };
+            timers.setTimers(defaultClockState, defaultClockState, new Date().getTime());
+            this.saveState(game.id);
+        } else {
+            this.pieceStateHistory = JSON.parse(game.pieceStateHistory);
+            timers.setTimers(JSON.parse(game.whiteTimer), JSON.parse(game.blackTimer), game.turnStart);
+        } 
     },
 
     getPieceFromType(type) {
