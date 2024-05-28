@@ -6,6 +6,7 @@ use App\Entity\Game;
 use App\MatchmakingService;
 use App\Repository\GameRepository;
 use App\Repository\UserRepository;
+use App\StockfishService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,6 +77,12 @@ class GameController extends AbstractController
         $this->hub->publish($redirectToGameUpdate);
 
         return new Response();
+    }
+
+    #[Route('/test')]
+    public function test(StockfishService $stockfishService): Response
+    {
+        dd($stockfishService->getBestMove(20, 'rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1'));
     }
 
 
@@ -169,4 +176,6 @@ class GameController extends AbstractController
 
         return new Response();
     }
+
+    
 }
