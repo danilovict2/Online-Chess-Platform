@@ -2,7 +2,7 @@
 
 {% block body %}
 	<div class="container">
-		<h1>Play</h1>
+		<h1>Play online</h1>
 
 		<form {{ stimulus_controller('game') }} action="{{ url('enter_game_matchmaking') }}" method="POST" class="modes d-flex justify-content-around row my-5">
 			<input type="hidden" name="token" value="{{ csrf_token('enter-game-matchmaking') }}">
@@ -19,6 +19,23 @@
 			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="30">30 MIN</button>
 		</form>
 
+		<h1>Play vs computer</h1>
+		<form class="d-flex flex-column row">
+			<div class="d-flex gap-3">
+				<input id="slider" type="range" min="1" max="25" value="1" onchange="output.textContent = '(' + elos[this.value] + ')';">
+				<p class="pt-3" id="elo">(250)</p>
+			</div>
+
+			<button class="btn btn-danger col-md-3">Play</button>
+		</form>
 		
 	</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	<script>
+		const output = document.getElementById('elo');
+		const elos = [0, 250, 400, 550, 700, 850, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2900, 3200];
+	</script>
 {% endblock %}
