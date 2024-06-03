@@ -14,11 +14,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
 #[Route('/game')]
+#[IsGranted("ROLE_USER")]
 class GameController extends AbstractController
 {
     public  function __construct(private EntityManagerInterface $entityManager, private HubInterface $hub)
@@ -33,6 +35,16 @@ class GameController extends AbstractController
         }
 
         return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
+    }
+
+    #[Route('/enter-computer-game', name: 'enter_computer_game', methods: ['POST'])]
+    public function enterComputerGame(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('enter-computer-game', $request->request->get('token'))) {
+            return new Response("Oops, it looks like there was an issue with your request.", Response::HTTP_FORBIDDEN);
+        }
+        
+        return new Response();
     }
 
     #[Route('/waiting-room', name: 'waiting_room')]

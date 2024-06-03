@@ -20,9 +20,10 @@
 		</form>
 
 		<h1>Play vs computer</h1>
-		<form class="d-flex flex-column row">
+		<form class="d-flex flex-column row" action="{{ url('enter_computer_game') }}" method="POST">
+			<input type="hidden" name="token" value="{{ csrf_token('enter-computer-game') }}">
 			<div class="d-flex gap-3">
-				<input id="slider" type="range" min="1" max="25" value="1" onchange="output.textContent = '(' + elos[this.value] + ')';">
+				<input name="engine-skill-level" type="range" min="1" max="25" value="1" onchange="output.textContent = '(' + elos[this.value] + ')'; ">
 				<p class="pt-3" id="elo">(250)</p>
 			</div>
 
