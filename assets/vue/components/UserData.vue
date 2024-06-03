@@ -9,14 +9,18 @@
 </template>
 
 <script setup>
+import EloChangeCalculator from '../services/EloChangeCalculator';
 import Clock from './Clock.vue';
-defineProps({
+const props = defineProps({
     player: Object,
+    opponent: Object,
     playerTeam: String,
-    winElo: Number,
-    tieElo: Number,
-    lossElo: Number
 });
+
+
+const winElo = EloChangeCalculator.eloChange(props.player, props.opponent, 1);
+const tieElo = EloChangeCalculator.eloChange(props.player, props.opponent, 0.5);
+const lossElo = EloChangeCalculator.eloChange(props.player, props.opponent, 0);
 </script>
 
 <style scoped>

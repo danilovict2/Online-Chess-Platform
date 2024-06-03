@@ -1,16 +1,10 @@
 <template>
-    <UserData :player="game.players[1]" player-team="b"
-        :win-elo="EloChangeCalculator.eloChange(game.players[1], game.players[0], 1)"
-        :tie-elo="EloChangeCalculator.eloChange(game.players[1], game.players[0], 0.5)"
-        :loss-elo="EloChangeCalculator.eloChange(game.players[1], game.players[0], 0)"></UserData>
+    <UserData :player="game.players[1]" player-team="b" :opponent="game.players[0]"></UserData>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece" />
     </div>
-    <UserData :player="game.players[0]" player-team="w"
-        :win-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 1)"
-        :tie-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 0.5)"
-        :loss-elo="EloChangeCalculator.eloChange(game.players[0], game.players[1], 0)"></UserData>
+    <UserData :player="game.players[0]" player-team="w" :opponent="game.players[1]"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam"
         @promote-to="promoteTo" />
     <EndGameModal v-show="gameOverMessage && !isPlayAgainModalActive" :message="gameOverMessage"
@@ -20,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, watch } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { sendPostRequest } from '../services/axios.js';
 import Tile from '../components/Tile.vue';
 import PromotionModal from '../components/modals/PromotionModal.vue';
