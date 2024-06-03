@@ -122,11 +122,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isInGame(): ?bool
-    {
-        return $this->game !== null;
-    }
-
     public function getGame(): ?Game
     {
         return $this->game;
