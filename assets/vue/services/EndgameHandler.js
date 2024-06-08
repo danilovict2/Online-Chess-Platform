@@ -29,47 +29,45 @@ export default class EndgameHandler {
     }
 
     /**
-     * Returns game status: -1: game not over, 0: player lost, 0.5: tie, 1: player won
+     * Returns object with game status and message: -1: game not over, 0: player lost, 0.5: tie, 1: player won
      */
     getGameStatus(movedPieceTeam, currentPlayerTeam) {
-        const isDraw = this.isDraw();
-        if (isDraw) {
-            return 0.5;
-        }
+        const drawMessage = this.getDrawMessage();
+        if (drawMessage !== '') 
+            return { status: 0.5, message: drawMessage };
+        
+        if (timers.whiteTimer.isExpired)
+            return { status: currentPlayerTeam !== 'w', message: (currentPlayerTeam !== 'w') ? 'You Won' : 'You lost' };
     
+        if (timers.blackTimer.isExpired)
+            return { status: currentPlayerTeam !== 'b', message: (currentPlayerTeam !== 'b') ? 'You Won' : 'You lost' };
+        
         const enemyPieces = getEnemyPieces(movedPieceTeam);
         const possibleMovesCalculator = new PossibleMovesCalculator();
 
         for (const enemy of enemyPieces) {
             // If enemy has valid moves the game is not over
             if (possibleMovesCalculator.calculatePossibleMovesForPiece(enemy).length > 0) {
-                return -1;
+                return { status: -1, message: '' };
             }
         }
     
         if (!possibleMovesCalculator.canEnemyPieceCaptureKing(getKingOfTeam(enemyPieces[0].team))) {
-            return 0.5;
+            return { status: 0.5, message: 'Draw by stalemate' };
         }
 
-        if (timers.whiteTimer.isExpired) {
-            return currentPlayerTeam !== 'w';
-        }
-        else if (timers.blackTimer.isExpired) {
-            return currentPlayerTeam !== 'b';
-        }
-
-        return Number(movedPieceTeam === currentPlayerTeam);
+        return { status: movedPieceTeam === currentPlayerTeam, message: (movedPieceTeam === currentPlayerTeam) ? 'You Won' : 'You lost' };
     }
-    
-    isDraw() {
-        if (board.pieces.size === 2) {
-            return true;
-        } else if(board.activeColor === 'w') {
-            if (board.halfmoves === 100) return true;
-            if (this.isThreefoldRepetition()) return true;
-        }
 
-        return false;
+    getDrawMessage() {
+        if (board.pieces.size === 2) {
+            return 'Insufficient Material';
+        } else if (board.activeColor === 'w') {
+            if (board.halfmoves === 100) return '50-Move Rule';
+            if (this.isThreefoldRepetition()) return 'Threefold Repetition';
+        }
+    
+        return '';
     }
 
     isThreefoldRepetition() {
