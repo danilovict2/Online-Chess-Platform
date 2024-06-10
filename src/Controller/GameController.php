@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Game;
 use App\MatchmakingService;
+use App\Repository\EngineRepository;
 use App\Repository\GameRepository;
 use App\Repository\UserRepository;
 use App\StockfishService;
@@ -38,13 +39,30 @@ class GameController extends AbstractController
     }
 
     #[Route('/enter-computer-game', name: 'enter_computer_game', methods: ['POST'])]
-    public function enterComputerGame(Request $request): Response
+    public function enterComputerGame(Request $request, EngineRepository $engineRepository): Response
     {
         if (!$this->isCsrfTokenValid('enter-computer-game', $request->request->get('token'))) {
             return new Response("Oops, it looks like there was an issue with your request.", Response::HTTP_FORBIDDEN);
         }
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        if ($user->getGame()) {
+            return $this->redirectToRoute('waiting_room');
+        }
         
-        return new Response();
+        $engine = $engineRepository->findOneBySkillLevel($request->request->get('engine-skill-level'));
+        $game = (new Game())
+            ->setLength(10)
+            ->addPlayer($this->getUser())
+            ->setEngine($engine)
+        ;
+        $user->setGame($game);
+
+        $this->entityManager->persist($game);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        
+        return $this->redirectToRoute('game', ['slug' => $game->getSlug()]);
     }
 
     #[Route('/waiting-room', name: 'waiting_room')]

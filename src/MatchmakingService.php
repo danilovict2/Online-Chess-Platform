@@ -26,7 +26,7 @@ class MatchmakingService
 
     public function enter(User $user, int $gameLength): RedirectResponse
     {
-        if ($user->isInGame()) {
+        if ($user->getGame()) {
             return new RedirectResponse($this->urlGenerator->generate('waiting_room'));
         }
 

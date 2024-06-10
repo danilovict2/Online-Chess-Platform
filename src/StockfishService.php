@@ -7,7 +7,7 @@ class StockfishService
 {
     public function getBestMove(int $skillLevel, string $fen): string
     {
-        $output = $this->runCommand("setoption name Skill Level value $skillLevel\nposition fen $fen\ngo\n");
+        $output = $this->runCommand("uci\nucinewgame\nposition startpos moves 10000\nsetoption name Skill Level value $skillLevel\nposition fen $fen\ngo movetime 10000\n");
         $bestMove = $this->extractBestMove($output);
 
         return $bestMove;
@@ -17,13 +17,14 @@ class StockfishService
     {
         $process = new Process(['stockfish']);
         $process->setInput($command);
-        $process->run();
+        $process->start();
+        $process->wait();
 
         if (!$process->isSuccessful()) {
             throw new \RuntimeException($process->getErrorOutput());
         }
 
-        return $process->getOutput();
+        return $process->getIncrementalOutput();
     }
 
     private function extractBestMove(string $output): string

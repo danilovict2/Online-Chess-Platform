@@ -31,13 +31,14 @@ import UserData from '../components/UserData.vue';
 import initWebSocket from '../services/websocket';
 import { timers } from '../stores/timers';
 import EloChangeCalculator from '../services/EloChangeCalculator';
-import { compressPieceState } from '../services/compress';
+import axios from 'axios';
 
 const { game, user } = defineProps({
     game: Object,
     user: Object
 });
 
+game.players = game.engine ? [game.players[0], game.engine] : game.players;
 board.loadState(game);
 initWebSocket(game.id, user.id, playMove, promote, enablePlayAgainModal);
 
@@ -52,17 +53,23 @@ const gameOverMessage = ref('');
 const isPlayAgainModalActive = ref(false);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 const opponent = user.id === game.players[0].id ? game.players[1] : game.players[0];
+console.log(game.fen);
+
 
 watchEffect(() => {
     if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
         const gameStatus = new EndgameHandler().getGameStatus('', currentPlayerTeam);
-        gameOverMessage.value = getGameOverMessage(gameStatus);
-        updateElo(gameStatus);
+        gameOverMessage.value = gameStatus.message;
+        updateElo(gameStatus.status);
     }
 
     if (gameOverMessage.value) {
         board.isGameOver = true;
         sendPostRequest(`/game/${game.id}/delete`, null);
+    }
+
+    if (game.engine && board.activeColor !== currentPlayerTeam && !gameOverMessage.value) {
+        playEngineMove();
     }
 });
 
@@ -124,6 +131,29 @@ function dropPiece(e) {
     possibleMoves.value = [];
 }
 
+function playEngineMove() {
+    const data = new FormData();
+    data.append('gameId', game.id);
+
+    axios.post('/engine/best-move', data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        }
+    })
+        .then(res => {
+            const move = res.data;
+            const toMoveTile = { x: move.charCodeAt(2) - 97 + 1, y: Number(move[3]) };
+            const piece = board.pieces.get(`${move.charCodeAt(0) - 97 + 1}-${move[1]}`);
+
+            if (isPromotionMove(piece, toMoveTile)) {
+                promote(piece, board.getPieceFromType(move[4]), toMoveTile);
+            } else {
+                playMove(piece, toMoveTile);
+            }
+        })
+        .catch(e => console.log(e));
+}
+
 function findClosestTile(clientX, clientY) {
     // +1 added to start indexing from 1
     const x = Math.floor((clientX - (boardLimits.minX + 25)) / GRID_COL_SIZE) + 1;
@@ -142,39 +172,19 @@ function isPromotionMove(piece, toMoveTile) {
 function playMove(pieceToMove, toMoveTile) {
     board.updateState(new MoveHandler().playMove(pieceToMove, toMoveTile));
     board.saveState(game.id);
+
     const gameStatus = new EndgameHandler().getGameStatus(pieceToMove.team, currentPlayerTeam);
-    if (gameStatus === -1) return;
-    gameOverMessage.value = getGameOverMessage(gameStatus);
-    updateElo(gameStatus);
+    if (gameStatus.status === -1) return;
+
+    gameOverMessage.value = gameStatus.message;
+    updateElo(gameStatus.status);
 }
 
-function getGameOverMessage(gameStatus) {
-    if (gameStatus === 1) {
-        return "You won!";
-    } else if (gameStatus === 0.5) {
-        return `Draw by ${getDrawMessage()}`;
-    } else {
-        return "You lost!";
-    }
-}
-
-function getDrawMessage() {
-    if (board.pieces.size === 2) {
-        return 'Insufficient Material';
-    } else if (board.activeColor === 'w') {
-        if (board.halfmoves === 100) return '50-Move Rule';
-        if (isThreefoldRepetition()) return 'Threefold Repetition';
-    }
-
-    return 'Draw by Stalemate';
-}
-
-function isThreefoldRepetition() {
-    const currentPieceState = compressPieceState(board.pieces).split(' ')[0];
-    return board.pieceStateHistory.filter(state => state === currentPieceState).length >= 3;
-}
 
 function updateElo(gameStatus) {
+    // No elo change if the game was against engine
+    if (game.engine) return;
+
     const data = new FormData();
     data.append('elo', EloChangeCalculator.eloChange(user, opponent, gameStatus));
     sendPostRequest('/game/update-elo', data);

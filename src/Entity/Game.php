@@ -26,7 +26,7 @@ class Game
     #[ORM\Column(length: 255, unique: true)]
     private ?string $slug = null;
 
-    #[Assert\Count(min: 2, max: 2)]
+    #[Assert\Count(min: 1, max: 2)]
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: User::class)]
     private Collection $players;
 
@@ -44,6 +44,9 @@ class Game
 
     #[ORM\Column(length: 95)]
     private ?string $fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+    #[ORM\ManyToOne]
+    private ?Engine $engine = null;
 
     public function __construct()
     {
@@ -180,6 +183,18 @@ class Game
     public function setFen(?string $fen): static
     {
         $this->fen = $fen;
+
+        return $this;
+    }
+
+    public function getEngine(): ?Engine
+    {
+        return $this->engine;
+    }
+
+    public function setEngine(?Engine $engine): static
+    {
+        $this->engine = $engine;
 
         return $this;
     }
