@@ -56,7 +56,6 @@ class GameController extends AbstractController
             ->setElo($request->request->get('engine-elo'))
         ;
         $game = (new Game())
-            ->setLength(10)
             ->addPlayer($this->getUser())
             ->setEngine($engine)
         ;

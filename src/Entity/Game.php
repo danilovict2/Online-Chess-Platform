@@ -20,7 +20,7 @@ class Game
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $length = null;
 
     #[ORM\Column(length: 255, unique: true)]

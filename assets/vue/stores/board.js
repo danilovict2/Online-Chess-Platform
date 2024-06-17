@@ -102,6 +102,8 @@ export const board = reactive({
         this.fullmoves = Number(fenParts[5]);
         this.updateState(this.pieces);
 
+        if (!game.length) return;
+
         if (!game.pieceStateHistory) {
             const defaultClockState = { minutes: game.length, seconds: 0 };
             timers.setTimers(defaultClockState, defaultClockState, new Date().getTime());

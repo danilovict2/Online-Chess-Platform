@@ -56,7 +56,7 @@ const opponent = user.id === game.players[0].id ? game.players[1] : game.players
 
 
 watchEffect(() => {
-    if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
+    if ((timers.whiteTimer && timers.whiteTimer.isExpired) || (timers.blackTimer && timers.blackTimer.isExpired)) {
         const gameStatus = new EndgameHandler().getGameStatus('', currentPlayerTeam);
         gameOverMessage.value = gameStatus.message;
         updateElo(gameStatus.status);
