@@ -45,7 +45,7 @@ class Game
     #[ORM\Column(length: 95)]
     private ?string $fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(cascade: ['persist', 'remove'])]
     private ?Engine $engine = null;
 
     public function __construct()

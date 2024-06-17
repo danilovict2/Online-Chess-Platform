@@ -53,7 +53,6 @@ const gameOverMessage = ref('');
 const isPlayAgainModalActive = ref(false);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 const opponent = user.id === game.players[0].id ? game.players[1] : game.players[0];
-console.log(game.fen);
 
 
 watchEffect(() => {

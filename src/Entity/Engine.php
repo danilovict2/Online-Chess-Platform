@@ -19,9 +19,6 @@ class Engine
     #[ORM\Column]
     private ?int $elo = null;
 
-    #[ORM\Column]
-    private ?int $skillLevel = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -40,18 +37,6 @@ class Engine
     public function setElo(int $elo): static
     {
         $this->elo = $elo;
-
-        return $this;
-    }
-
-    public function getSkillLevel(): ?int
-    {
-        return $this->skillLevel;
-    }
-
-    public function setSkillLevel(int $skillLevel): static
-    {
-        $this->skillLevel = $skillLevel;
 
         return $this;
     }

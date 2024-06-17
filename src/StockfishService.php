@@ -6,18 +6,18 @@ use Symfony\Component\Process\Process;
 
 class StockfishService
 {
-    public function getBestMove(int $skillLevel, string $fen): string
+    public function getBestMove(int $elo, string $fen): string
     {
         $commands = [
             "ucinewgame",
-            "setoption name Skill Level value $skillLevel",
+            "setoption name UCI_LimitStrength value true",
+            "setoption name UCI_Elo value $elo",
             "position fen $fen",
-            "go movetime 1000"
+            "go movetime 3000"
         ];
-
+        
         $output = $this->runCommand($commands);
         $bestMove = $this->extractBestMove($output);
-
         return $bestMove;
     }
 
