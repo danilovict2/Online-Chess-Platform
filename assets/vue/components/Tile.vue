@@ -3,6 +3,7 @@
         'black-tile': (x + y) % 2 === 0,
         'white-tile': (x + y) % 2 !== 0,
         'highlight': isPossibleMove,
+        'glowing': isGlowing,
         'chess-piece-tile': containsPiece
     }">
         <div class="rank" v-show="rank" v-text="rank"></div>
@@ -18,7 +19,8 @@ const { x, y, pieceImage, isPossibleMove } = defineProps({
     x: Number,
     y: Number,
     pieceImage: String,
-    isPossibleMove: Boolean
+    isPossibleMove: Boolean,
+    isGlowing: Boolean
 });
 const emit = defineEmits(['grabPiece']);
 const containsPiece = pieceImage !== '';
@@ -103,5 +105,10 @@ function grabPiece(e) {
     border: 5px solid rgba(0, 0, 0, 0.4);
     border-radius: 50%;
     margin: 5px;
+}
+
+.glowing {
+    border: 5px solid white;
+    transition: border .005s ease-in-out;
 }
 </style>

@@ -2,7 +2,8 @@
     <UserData :player="game.players[1]" player-team="b" :opponent="game.players[0]"></UserData>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
-            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece" />
+            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" :is-glowing="tile.isGlowing"
+            @grab-piece="grabPiece" />
     </div>
     <UserData :player="game.players[0]" player-team="w" :opponent="game.players[1]"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam"
@@ -105,6 +106,12 @@ function moveCurrentPieceDOMElement(e) {
         const y = e.pageY - GRID_COL_SIZE / 2;
         currentPieceDOMElement.value.style.left = `${Math.min(Math.max(x, boardLimits.minX), boardLimits.maxX)}px`;
         currentPieceDOMElement.value.style.top = `${Math.min(Math.max(y, boardLimits.minY), boardLimits.maxY)}px`;
+        const currentTile = findClosestTile(e.clientX, e.clientY);
+
+        board.state = board.state.map((tile) => {
+            tile.isGlowing = tile.x === currentTile.x && tile.y === currentTile.y;
+            return tile;
+        });
     }
 }
 
@@ -193,6 +200,7 @@ function resetCurrentPieceDOMElementPosition() {
     currentPieceDOMElement.value.style.position = 'relative';
     currentPieceDOMElement.value.style.removeProperty('top');
     currentPieceDOMElement.value.style.removeProperty('left');
+    board.updateState(board.pieces);
 }
 
 function enablePromotionModal() {

@@ -25,6 +25,7 @@ export const board = reactive({
                     x: i,
                     y: j,
                     pieceImage: foundPiece ? `images/${foundPiece.type.toLowerCase()}_${foundPiece.team}.png` : '',
+                    isGlowing: false,
                 });
             }
         }
