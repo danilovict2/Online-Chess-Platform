@@ -1,0 +1,7 @@
+
+2. Piece moving animation
+4. Play again u AI
+5. Elo u AI games prikazivanje
+6. Sound effects
+7. Last move marker
+8. Edit profile
