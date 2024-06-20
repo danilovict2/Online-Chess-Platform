@@ -1,11 +1,13 @@
 <template>
-    <UserData :player="game.players[1]" player-team="b" :opponent="game.players[0]"></UserData>
+    <UserData :player="game.players[1]" player-team="b" :opponent="game.players[0]"
+        :is-engine-game="game.engine !== null"></UserData>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
             :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" :is-glowing="tile.isGlowing"
             :is-highlighted="tile.isHighlighted" @grab-piece="grabPiece" />
     </div>
-    <UserData :player="game.players[0]" player-team="w" :opponent="game.players[1]"></UserData>
+    <UserData :player="game.players[0]" player-team="w" :opponent="game.players[1]"
+        :is-engine-game="game.engine !== null"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam"
         @promote-to="promoteTo" />
     <EndGameModal v-show="gameOverMessage && !isPlayAgainModalActive" :message="gameOverMessage"
@@ -176,10 +178,10 @@ function isPromotionMove(piece, toMoveTile) {
 }
 
 function playMove(pieceToMove, toMoveTile) {
-    const currentPieceTile = {x: pieceToMove.x, y: pieceToMove.y};
+    const currentPieceTile = { x: pieceToMove.x, y: pieceToMove.y };
     board.updateState(new MoveHandler().playMove(pieceToMove, toMoveTile));
     board.saveState(game.id);
-    
+
     board.state = board.state.map((tile) => {
         tile.isHighlighted = samePosition(tile, currentPieceTile) || samePosition(tile, toMoveTile);
         return tile;
