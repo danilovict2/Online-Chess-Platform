@@ -32,20 +32,12 @@ class GameController extends AbstractController
     #[Route('/enter-matchmaking', name: 'enter_game_matchmaking', methods: ['POST'])]
     public function enterMathcmaking(Request $request, MatchmakingService $matchmaking): Response
     {
-        if (!$this->isCsrfTokenValid('enter-game-matchmaking', $request->request->get('token'))) {
-            return new Response("Oops, it looks like there was an issue with your request.", Response::HTTP_FORBIDDEN);
-        }
-
         return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
     }
 
     #[Route('/enter-computer-game', name: 'enter_computer_game', methods: ['POST'])]
     public function enterComputerGame(Request $request): Response
-    {
-        if (!$this->isCsrfTokenValid('enter-computer-game', $request->request->get('token'))) {
-            return new Response("Oops, it looks like there was an issue with your request.", Response::HTTP_FORBIDDEN);
-        }
-        
+    {   
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if ($user->getGame()) {

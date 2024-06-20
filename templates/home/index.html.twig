@@ -5,7 +5,6 @@
 		<h1>Play online</h1>
 
 		<form {{ stimulus_controller('game') }} action="{{ url('enter_game_matchmaking') }}" method="POST" class="modes d-flex justify-content-around row my-5">
-			<input type="hidden" name="token" value="{{ csrf_token('enter-game-matchmaking') }}">
 			<input type="hidden" name="game-length" value="0" data-game-target="gameLength">
 
 			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="3">3 MIN</button>
@@ -21,7 +20,6 @@
 
 		<h1>Play vs computer</h1>
 		<form class="d-flex flex-column row" action="{{ url('enter_computer_game') }}" method="POST">
-			<input type="hidden" name="token" value="{{ csrf_token('enter-computer-game') }}">
 			<div class="d-flex gap-3">
 				<input name="engine-elo" type="range" value="1320" min="1320" max="3190" onchange="changeEloDisplay(this)">
 				<p class="pt-3" id="elo">(1320)</p>

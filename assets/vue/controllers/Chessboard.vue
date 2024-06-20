@@ -230,7 +230,19 @@ function promote(promotedPawn, pieceType, promotionTile) {
 }
 
 function sendPlayAgainProposal() {
-    sendPostRequest(`/game/${game.id}/play-again-request/${opponent.id}`, null);
+    if (game.engine) {
+        const data = new FormData();
+        data.append('engine-elo', game.engine.elo);
+        axios.post('/game/enter-computer-game', data, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            }
+        })
+            .then(() => window.location = '/game/waiting-room')
+            .catch(e => console.log(e));    
+    } else {
+        sendPostRequest(`/game/${game.id}/play-again-request/${opponent.id}`, null);
+    }
 }
 
 function enablePlayAgainModal() {
