@@ -1,30 +1,52 @@
 <?php
 
 namespace App;
+use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
 
 class StockfishService
 {
-    public function getBestMove(int $skillLevel, string $fen): string
+    public function getBestMove(int $elo, string $fen): string
     {
-        $output = $this->runCommand("uci\nucinewgame\nposition startpos moves 10000\nsetoption name Skill Level value $skillLevel\nposition fen $fen\ngo movetime 10000\n");
+        $commands = [
+            "ucinewgame",
+            "setoption name UCI_LimitStrength value true",
+            "setoption name UCI_Elo value $elo",
+            "position fen $fen",
+            "go movetime 3000"
+        ];
+        
+        $output = $this->runCommand($commands);
         $bestMove = $this->extractBestMove($output);
-
         return $bestMove;
     }
 
-    private function runCommand(string $command): string
+    private function runCommand(array $commands): string
     {
         $process = new Process(['stockfish']);
-        $process->setInput($command);
+        $input = new InputStream();
+        $process->setInput($input);
         $process->start();
+
+        foreach ($commands as $command) {
+            $input->write($command . "\n");
+        }
+
+        // Wait for the final output from the 'go' command
+        while ($process->isRunning()) {
+            if (strpos($process->getOutput(), 'bestmove') !== false) {
+                break;
+            }
+        }
+
+        $input->close();
         $process->wait();
 
         if (!$process->isSuccessful()) {
             throw new \RuntimeException($process->getErrorOutput());
         }
-
-        return $process->getIncrementalOutput();
+  
+        return $process->getOutput();
     }
 
     private function extractBestMove(string $output): string

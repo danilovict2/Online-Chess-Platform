@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Engine;
 use App\Entity\Game;
 use App\MatchmakingService;
 use App\Repository\EngineRepository;
@@ -31,28 +32,22 @@ class GameController extends AbstractController
     #[Route('/enter-matchmaking', name: 'enter_game_matchmaking', methods: ['POST'])]
     public function enterMathcmaking(Request $request, MatchmakingService $matchmaking): Response
     {
-        if (!$this->isCsrfTokenValid('enter-game-matchmaking', $request->request->get('token'))) {
-            return new Response("Oops, it looks like there was an issue with your request.", Response::HTTP_FORBIDDEN);
-        }
-
         return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
     }
 
     #[Route('/enter-computer-game', name: 'enter_computer_game', methods: ['POST'])]
-    public function enterComputerGame(Request $request, EngineRepository $engineRepository): Response
-    {
-        if (!$this->isCsrfTokenValid('enter-computer-game', $request->request->get('token'))) {
-            return new Response("Oops, it looks like there was an issue with your request.", Response::HTTP_FORBIDDEN);
-        }
+    public function enterComputerGame(Request $request): Response
+    {   
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if ($user->getGame()) {
             return $this->redirectToRoute('waiting_room');
         }
         
-        $engine = $engineRepository->findOneBySkillLevel($request->request->get('engine-skill-level'));
+        $engine = (new Engine())
+            ->setElo($request->request->get('engine-elo'))
+        ;
         $game = (new Game())
-            ->setLength(10)
             ->addPlayer($this->getUser())
             ->setEngine($engine)
         ;
@@ -108,13 +103,6 @@ class GameController extends AbstractController
 
         return new Response();
     }
-
-    #[Route('/test')]
-    public function test(StockfishService $stockfishService): Response
-    {
-        dd($stockfishService->getBestMove(20, 'rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1'));
-    }
-
 
     #[Route('/{slug}', name: 'game')]
     public function game(string $slug, GameRepository $gameRepository): Response

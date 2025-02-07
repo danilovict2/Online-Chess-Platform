@@ -2,7 +2,7 @@
     <div class="user-data">
         <span>
             <img src="/images/default-user-image.svg" class="d-inline-block align-text-top">
-            {{ player.username }} ({{ player.elo }}) (win +{{ winElo }} / tie {{ (tieElo < 0 ? "":"+") + tieElo }} / loss {{ lossElo }})
+            {{ player.username }}({{ player.elo }}) <span v-show="!isEngineGame"> (win +{{ winElo }} / tie {{ (tieElo < 0 ? "":"+") + tieElo }} / loss {{ lossElo }})</span>
         </span>
         <Clock :team="playerTeam"></Clock>
     </div>
@@ -15,6 +15,7 @@ const props = defineProps({
     player: Object,
     opponent: Object,
     playerTeam: String,
+    isEngineGame: Boolean
 });
 
 
@@ -34,6 +35,8 @@ const lossElo = EloChangeCalculator.eloChange(props.player, props.opponent, 0);
 .user-data > span {
     font-size: 1rem;
     font-weight: 600;
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .user-data > span > img {

@@ -25,6 +25,8 @@ export const board = reactive({
                     x: i,
                     y: j,
                     pieceImage: foundPiece ? `images/${foundPiece.type.toLowerCase()}_${foundPiece.team}.png` : '',
+                    isGlowing: false,
+                    isHighlighted: false
                 });
             }
         }
@@ -101,6 +103,8 @@ export const board = reactive({
         this.halfmoves = Number(fenParts[4]);
         this.fullmoves = Number(fenParts[5]);
         this.updateState(this.pieces);
+
+        if (!game.length) return;
 
         if (!game.pieceStateHistory) {
             const defaultClockState = { minutes: game.length, seconds: 0 };

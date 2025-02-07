@@ -16,7 +16,7 @@ class EngineController extends AbstractController
     {
         $gameId = $request->request->get('gameId');
         $game = $gameRepository->findOneById($gameId);
-        $bestMove = $stockfish->getBestMove($game->getEngine()->getSkillLevel(), $game->getFen());
+        $bestMove = $stockfish->getBestMove($game->getEngine()->getElo(), $game->getFen());
 
         return new JsonResponse($bestMove);
     }

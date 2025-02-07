@@ -1,10 +1,13 @@
 <template>
-    <UserData :player="game.players[1]" player-team="b" :opponent="game.players[0]"></UserData>
+    <UserData :player="game.players[1]" player-team="b" :opponent="game.players[0]"
+        :is-engine-game="game.engine !== null"></UserData>
     <div id="chessboard" ref="chessboard" @mousemove="e => moveCurrentPieceDOMElement(e)" @mouseup="e => dropPiece(e)">
         <Tile v-for="tile in board.state" :key="tile" :x="tile.x" :y="tile.y" :piece-image="tile.pieceImage"
-            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" @grab-piece="grabPiece" />
+            :is-possible-move="possibleMoves.some(move => samePosition(move, tile))" :is-glowing="tile.isGlowing"
+            :is-highlighted="tile.isHighlighted" @grab-piece="grabPiece" />
     </div>
-    <UserData :player="game.players[0]" player-team="w" :opponent="game.players[1]"></UserData>
+    <UserData :player="game.players[0]" player-team="w" :opponent="game.players[1]"
+        :is-engine-game="game.engine !== null"></UserData>
     <PromotionModal v-show="promotionPawn?.team === currentPlayerTeam" :team="currentPlayerTeam"
         @promote-to="promoteTo" />
     <EndGameModal v-show="gameOverMessage && !isPlayAgainModalActive" :message="gameOverMessage"
@@ -53,11 +56,10 @@ const gameOverMessage = ref('');
 const isPlayAgainModalActive = ref(false);
 const currentPlayerTeam = user.id === game.players[0].id ? 'w' : 'b';
 const opponent = user.id === game.players[0].id ? game.players[1] : game.players[0];
-console.log(game.fen);
 
 
 watchEffect(() => {
-    if (timers.whiteTimer.isExpired || timers.blackTimer.isExpired) {
+    if ((timers.whiteTimer && timers.whiteTimer.isExpired) || (timers.blackTimer && timers.blackTimer.isExpired)) {
         const gameStatus = new EndgameHandler().getGameStatus('', currentPlayerTeam);
         gameOverMessage.value = gameStatus.message;
         updateElo(gameStatus.status);
@@ -106,6 +108,12 @@ function moveCurrentPieceDOMElement(e) {
         const y = e.pageY - GRID_COL_SIZE / 2;
         currentPieceDOMElement.value.style.left = `${Math.min(Math.max(x, boardLimits.minX), boardLimits.maxX)}px`;
         currentPieceDOMElement.value.style.top = `${Math.min(Math.max(y, boardLimits.minY), boardLimits.maxY)}px`;
+        const currentTile = findClosestTile(e.clientX, e.clientY);
+
+        board.state = board.state.map((tile) => {
+            tile.isGlowing = samePosition(tile, currentTile);
+            return tile;
+        });
     }
 }
 
@@ -170,8 +178,14 @@ function isPromotionMove(piece, toMoveTile) {
 }
 
 function playMove(pieceToMove, toMoveTile) {
+    const currentPieceTile = { x: pieceToMove.x, y: pieceToMove.y };
     board.updateState(new MoveHandler().playMove(pieceToMove, toMoveTile));
     board.saveState(game.id);
+
+    board.state = board.state.map((tile) => {
+        tile.isHighlighted = samePosition(tile, currentPieceTile) || samePosition(tile, toMoveTile);
+        return tile;
+    });
 
     const gameStatus = new EndgameHandler().getGameStatus(pieceToMove.team, currentPlayerTeam);
     if (gameStatus.status === -1) return;
@@ -194,6 +208,7 @@ function resetCurrentPieceDOMElementPosition() {
     currentPieceDOMElement.value.style.position = 'relative';
     currentPieceDOMElement.value.style.removeProperty('top');
     currentPieceDOMElement.value.style.removeProperty('left');
+    board.updateState(board.pieces);
 }
 
 function enablePromotionModal() {
@@ -215,7 +230,19 @@ function promote(promotedPawn, pieceType, promotionTile) {
 }
 
 function sendPlayAgainProposal() {
-    sendPostRequest(`/game/${game.id}/play-again-request/${opponent.id}`, null);
+    if (game.engine) {
+        const data = new FormData();
+        data.append('engine-elo', game.engine.elo);
+        axios.post('/game/enter-computer-game', data, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            }
+        })
+            .then(() => window.location = '/game/waiting-room')
+            .catch(e => console.log(e));    
+    } else {
+        sendPostRequest(`/game/${game.id}/play-again-request/${opponent.id}`, null);
+    }
 }
 
 function enablePlayAgainModal() {

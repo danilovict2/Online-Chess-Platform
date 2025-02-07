@@ -2,7 +2,9 @@
     <div class="tile" :class="{
         'black-tile': (x + y) % 2 === 0,
         'white-tile': (x + y) % 2 !== 0,
-        'highlight': isPossibleMove,
+        'possible-move': isPossibleMove,
+        'glowing': isGlowing,
+        'highlight': isHighlighted,
         'chess-piece-tile': containsPiece
     }">
         <div class="rank" v-show="rank" v-text="rank"></div>
@@ -18,7 +20,9 @@ const { x, y, pieceImage, isPossibleMove } = defineProps({
     x: Number,
     y: Number,
     pieceImage: String,
-    isPossibleMove: Boolean
+    isPossibleMove: Boolean,
+    isGlowing: Boolean,
+    isHighlighted: Boolean
 });
 const emit = defineEmits(['grabPiece']);
 const containsPiece = pieceImage !== '';
@@ -87,7 +91,7 @@ function grabPiece(e) {
     color: #ebecd0;
 }
 
-.highlight:not(.chess-piece-tile)::before {
+.possible-move:not(.chess-piece-tile)::before {
     content: " ";
     width: 24px;
     height: 24px;
@@ -95,7 +99,7 @@ function grabPiece(e) {
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-.highlight.chess-piece-tile::before {
+.possible-move.chess-piece-tile::before {
     position: absolute;
     content: " ";
     width: 90px;
@@ -103,5 +107,15 @@ function grabPiece(e) {
     border: 5px solid rgba(0, 0, 0, 0.4);
     border-radius: 50%;
     margin: 5px;
+}
+
+.glowing {
+    border: 5px solid white;
+    transition: border .005s ease-in-out;
+}
+
+.highlight {
+    background-color: rgb(255, 255, 51);
+    opacity: 1;
 }
 </style>

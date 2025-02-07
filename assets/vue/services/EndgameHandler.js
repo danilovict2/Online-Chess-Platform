@@ -36,10 +36,10 @@ export default class EndgameHandler {
         if (drawMessage !== '') 
             return { status: 0.5, message: drawMessage };
         
-        if (timers.whiteTimer.isExpired)
+        if (timers.whiteTimer && timers.whiteTimer.isExpired)
             return { status: currentPlayerTeam !== 'w', message: (currentPlayerTeam !== 'w') ? 'You Won' : 'You lost' };
     
-        if (timers.blackTimer.isExpired)
+        if (timers.whiteTimer && timers.blackTimer.isExpired)
             return { status: currentPlayerTeam !== 'b', message: (currentPlayerTeam !== 'b') ? 'You Won' : 'You lost' };
         
         const enemyPieces = getEnemyPieces(movedPieceTeam);
