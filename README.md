@@ -25,16 +25,17 @@ composer install
 npm install
 ```
 
+### Run Migrations
+
+```bash
+docker compose up -d
+symfony console doctrine:migrations:migrate
+```
+
 ### Run the App
 
 ```bash
 make server-start
-```
-
-### Run Migrations
-
-```bash
-symfony console doctrine:migrations:migrate
 ```
 
 ### Access the Platform
