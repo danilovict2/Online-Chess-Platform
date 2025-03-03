@@ -50,7 +50,7 @@ make server-stop
 
 ## ✨ Features
 
-- ♟️ Real-time multiplayer chess matches with customizable time controls.
+- ♟️ Real-time multiplayer chess matches with customizable time controls and Elo rating adjustments based on performance.
 - 🤖 Play against the Stockfish AI with different Elo ratings.
 - 🔐 User authentication and authorization.
 - 🌐 Mercure integration for real-time event broadcasting
