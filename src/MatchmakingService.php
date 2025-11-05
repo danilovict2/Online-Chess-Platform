@@ -8,7 +8,6 @@ use App\Entity\User;
 use App\Exception\GameNotFoundException;
 use App\Repository\MatchQueueRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Pusher\Pusher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
@@ -21,8 +20,7 @@ class MatchmakingService
         private EntityManagerInterface $entityManager,
         private UrlGeneratorInterface $urlGenerator,
         private HubInterface $hub,
-    ) {
-    }
+    ) {}
 
     public function enter(User $user, int $gameLength): RedirectResponse
     {
@@ -40,7 +38,7 @@ class MatchmakingService
     private function joinGame(User $user, int $gameLength): RedirectResponse
     {
         $queuedMatches = $this->matchQueueRepository->findBy(['gameLength' => $gameLength]);
-        if (empty(array_filter($queuedMatches, fn ($matchQueue) => $matchQueue->getWaitingPlayer() !== $user))) {
+        if (empty(array_filter($queuedMatches, fn($matchQueue) => $matchQueue->getWaitingPlayer() !== $user))) {
             throw new GameNotFoundException();
         }
 

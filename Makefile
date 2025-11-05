@@ -3,8 +3,7 @@ SHELL := /bin/bash
 server-start:
 	symfony server:start --no-tls -d
 	docker compose up -d
-	symfony run -d npm run watch
-	symfony run -d --watch=config,src,templates,vendor symfony console messenger:consume async -vv
+	symfony run -d bun run watch
 .PHONY: server-start
 
 server-stop:

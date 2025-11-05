@@ -36,6 +36,10 @@ services:
       - mercure_data:/data
       - mercure_config:/config
 ###< symfony/mercure-bundle ###
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports: [5672, 15672]
 
 volumes:
 ###> doctrine/doctrine-bundle ###
