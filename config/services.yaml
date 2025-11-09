@@ -20,5 +20,14 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\Factory\AmqpConnectionFactory: ~
+
+    PhpAmqpLib\Connection\AMQPStreamConnection:
+        factory: ['@App\Factory\AMQPConnectionFactory', 'connectionFromDsn']
+        arguments:
+          - '%env(MESSENGER_TRANSPORT_DSN)%'
+        lazy: true
+
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
