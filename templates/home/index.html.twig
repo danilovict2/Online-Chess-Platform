@@ -6,16 +6,9 @@
 
 		<form {{ stimulus_controller('game') }} action="{{ url('enter_game_matchmaking') }}" method="POST" class="modes d-flex justify-content-around row my-5">
 			<input type="hidden" name="game-length" value="0" data-game-target="gameLength">
-
-			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="3">3 MIN</button>
-
-			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="5">5 MIN</button>
-
-			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="10">10 MIN</button>
-
-			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="15">15 MIN</button>
-
-			<button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="30">30 MIN</button>
+            {% for t in [3, 5, 10, 15, 30] %}
+                <button type="button" class="btn btn-danger col-md-1" data-action="game#createGameOfLength" data-game-length-param="{{ t }}">{{ t }} MIN</button>
+            {% endfor %}
 		</form>
 
 		<h1>Play vs computer</h1>
