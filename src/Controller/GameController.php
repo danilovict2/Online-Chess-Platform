@@ -5,10 +5,9 @@ namespace App\Controller;
 use App\Entity\Engine;
 use App\Entity\Game;
 use App\MatchmakingService;
-use App\Repository\EngineRepository;
+use App\NewMatchmakingService;
 use App\Repository\GameRepository;
 use App\Repository\UserRepository;
-use App\StockfishService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,38 +24,38 @@ use Symfony\Component\Serializer\Serializer;
 #[IsGranted("ROLE_USER")]
 class GameController extends AbstractController
 {
-    public  function __construct(private EntityManagerInterface $entityManager, private HubInterface $hub)
-    {
-    }
+    public  function __construct(private EntityManagerInterface $entityManager, private HubInterface $hub) {}
 
     #[Route('/enter-matchmaking', name: 'enter_game_matchmaking', methods: ['POST'])]
-    public function enterMathcmaking(Request $request, MatchmakingService $matchmaking): Response
+    public function enterMathcmaking(Request $request, NewMatchmakingService $matchmaking): Response
     {
-        return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $matchmaking->addToQueue($user);
+        return $this->redirectToRoute('waiting_room');
+        //return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
     }
 
     #[Route('/enter-computer-game', name: 'enter_computer_game', methods: ['POST'])]
     public function enterComputerGame(Request $request): Response
-    {   
+    {
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if ($user->getGame()) {
             return $this->redirectToRoute('waiting_room');
         }
-        
+
         $engine = (new Engine())
-            ->setElo($request->request->get('engine-elo'))
-        ;
+            ->setElo($request->request->get('engine-elo'));
         $game = (new Game())
             ->addPlayer($this->getUser())
-            ->setEngine($engine)
-        ;
+            ->setEngine($engine);
         $user->setGame($game);
 
         $this->entityManager->persist($game);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-        
+
         return $this->redirectToRoute('game', ['slug' => $game->getSlug()]);
     }
 
@@ -107,7 +106,7 @@ class GameController extends AbstractController
     #[Route('/{slug}', name: 'game')]
     public function game(string $slug, GameRepository $gameRepository): Response
     {
-        $normalizer = new ObjectNormalizer(defaultContext: [AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => fn () => null]);
+        $normalizer = new ObjectNormalizer(defaultContext: [AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => fn() => null]);
         $serializer = new Serializer([$normalizer]);
         $game = $serializer->normalize($gameRepository->findOneBySlug($slug));
         $user = $serializer->normalize($this->getUser());
@@ -161,8 +160,7 @@ class GameController extends AbstractController
             ->setTurnStart($request->request->get('turnStart'))
             ->setWhiteTimer($request->request->get('whiteTimer'))
             ->setBlackTimer($request->request->get('blackTimer'))
-            ->setFen($request->request->get('fen'));
-        ;
+            ->setFen($request->request->get('fen'));;
 
         $this->entityManager->persist($game);
         $this->entityManager->flush();
@@ -194,6 +192,4 @@ class GameController extends AbstractController
 
         return new Response();
     }
-
-    
 }
