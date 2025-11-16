@@ -37,8 +37,8 @@ services:
       - mercure_config:/config
 ###< symfony/mercure-bundle ###
   
-  rabbitmq:
-    image: rabbitmq:3-management
+  redis:
+    image: redis:8.4-rc1-alpine3.22
 
 volumes:
 ###> doctrine/doctrine-bundle ###
