@@ -23,7 +23,7 @@ final class MatchmakingService
 
     public function enter(User $user, int $gameLength): RedirectResponse
     {
-        if ($user->getGame() or $this->inQueue($user)) {
+        if ($user->getGame() or $this->inQueue($user, $gameLength)) {
             return new RedirectResponse($this->urlGenerator->generate('waiting_room'));
         }
 
@@ -36,11 +36,11 @@ final class MatchmakingService
 
     private function joinGame(User $user, int $gameLength): RedirectResponse
     {
-        if ($this->redis->llen('queue') === 0) {
+        if ($this->redis->llen("queue_$gameLength") === 0) {
             throw new GameNotFoundException();
         }
 
-        $opponentID = explode(':', $this->redis->rpop('queue'))[1];
+        $opponentID = explode(':', $this->redis->rpop("queue_$gameLength"))[1];
         $opponent = $this->entityManager->getRepository(User::class)->find($opponentID);
 
         $game = (new Game())->setLength($gameLength)->addPlayer($opponent)->addPlayer($user);
@@ -56,16 +56,16 @@ final class MatchmakingService
         return new RedirectResponse($this->urlGenerator->generate('game', ['slug' => $game->getSlug()]));
     }
 
-    private function inQueue(User $user): bool
+    private function inQueue(User $user, int $gameLength): bool
     {
         $userID = $user->getId();
-        return $this->redis->executeRaw(['LPOS', 'queue', "user:$userID"]) !== null;
+        return $this->redis->executeRaw(['LPOS', "queue_$gameLength", "user:$userID"]) !== null;
     }
 
     private function enqueue(User $user, int $gameLength): RedirectResponse
     {
         $userID = $user->getId();
-        $this->redis->lpush('queue', "user:$userID");
+        $this->redis->lpush("queue_$gameLength", "user:$userID");
 
         return new RedirectResponse($this->urlGenerator->generate('waiting_room'));
     }
