@@ -29,11 +29,7 @@ class GameController extends AbstractController
     #[Route('/enter-matchmaking', name: 'enter_game_matchmaking', methods: ['POST'])]
     public function enterMathcmaking(Request $request, NewMatchmakingService $matchmaking): Response
     {
-        /** @var \App\Entity\User $user */
-        $user = $this->getUser();
-        $matchmaking->addToQueue($user);
-        return $this->redirectToRoute('waiting_room');
-        //return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
+        return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
     }
 
     #[Route('/enter-computer-game', name: 'enter_computer_game', methods: ['POST'])]
