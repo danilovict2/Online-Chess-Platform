@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Engine;
 use App\Entity\Game;
 use App\MatchmakingService;
-use App\NewMatchmakingService;
 use App\Repository\GameRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,7 +26,7 @@ class GameController extends AbstractController
     public  function __construct(private EntityManagerInterface $entityManager, private HubInterface $hub) {}
 
     #[Route('/enter-matchmaking', name: 'enter_game_matchmaking', methods: ['POST'])]
-    public function enterMathcmaking(Request $request, NewMatchmakingService $matchmaking): Response
+    public function enterMathcmaking(Request $request, MatchmakingService $matchmaking): Response
     {
         return $matchmaking->enter($this->getUser(), $request->request->get('game-length'));
     }

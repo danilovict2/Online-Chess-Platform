@@ -3,68 +3,69 @@
 namespace App;
 
 use App\Entity\Game;
-use App\Entity\MatchQueue;
 use App\Entity\User;
 use App\Exception\GameNotFoundException;
-use App\Repository\MatchQueueRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Predis\Client;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class MatchmakingService
+final class MatchmakingService
 {
     public function __construct(
-        private MatchQueueRepository $matchQueueRepository,
-        private EntityManagerInterface $entityManager,
+        private Client $redis,
         private UrlGeneratorInterface $urlGenerator,
         private HubInterface $hub,
+        private EntityManagerInterface $entityManager,
     ) {}
 
     public function enter(User $user, int $gameLength): RedirectResponse
     {
-        if ($user->getGame()) {
+        if ($user->getGame() or $this->inQueue($user)) {
             return new RedirectResponse($this->urlGenerator->generate('waiting_room'));
         }
 
         try {
             return $this->joinGame($user, $gameLength);
         } catch (GameNotFoundException) {
-            return $this->addUserToMatchmakingQueue($user, $gameLength);
+            return $this->enqueue($user, $gameLength);
         }
     }
 
     private function joinGame(User $user, int $gameLength): RedirectResponse
     {
-        $queuedMatches = $this->matchQueueRepository->findBy(['gameLength' => $gameLength]);
-        if (empty(array_filter($queuedMatches, fn($matchQueue) => $matchQueue->getWaitingPlayer() !== $user))) {
+        if ($this->redis->llen('queue') === 0) {
             throw new GameNotFoundException();
         }
 
-        $game = (new Game())->setLength($gameLength)->addPlayer($queuedMatches[0]->getWaitingPlayer())->addPlayer($user);
+        $opponentID = explode(':', $this->redis->rpop('queue'))[1];
+        $opponent = $this->entityManager->getRepository(User::class)->find($opponentID);
+
+        $game = (new Game())->setLength($gameLength)->addPlayer($opponent)->addPlayer($user);
 
         $this->entityManager->persist($game);
         $this->entityManager->persist($user);
-        $this->entityManager->remove($queuedMatches[0]);
         $this->entityManager->flush();
 
-        $matchFoundUpdate = new Update('match-found');
         // Inform the opposing player's client about the match discovery
+        $matchFoundUpdate = new Update('match-found');
         $this->hub->publish($matchFoundUpdate);
 
         return new RedirectResponse($this->urlGenerator->generate('game', ['slug' => $game->getSlug()]));
     }
 
-    private function addUserToMatchmakingQueue(User $user, int $gameLength): RedirectResponse
+    private function inQueue(User $user): bool
     {
-        if (empty($this->matchQueueRepository->findBy(['waitingPlayer' => $user]))) {
-            $matchQueue = (new MatchQueue())->setWaitingPlayer($user)->setGameLength($gameLength);
+        $userID = $user->getId();
+        return $this->redis->executeRaw(['LPOS', 'queue', "user:$userID"]) !== null;
+    }
 
-            $this->entityManager->persist($matchQueue);
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-        }
+    private function enqueue(User $user, int $gameLength): RedirectResponse
+    {
+        $userID = $user->getId();
+        $this->redis->lpush('queue', "user:$userID");
 
         return new RedirectResponse($this->urlGenerator->generate('waiting_room'));
     }
